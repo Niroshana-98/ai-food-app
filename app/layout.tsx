@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <html lang="en" suppressHydrationWarning>
         <body suppressHydrationWarning>
           <Navbar />
-          <AuthHandler /> {/* Handles backend signup/login */}
+          <AuthHandler /> 
           <main>{children}</main>
         </body>
       </html>

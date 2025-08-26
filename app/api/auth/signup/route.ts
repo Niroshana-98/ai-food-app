@@ -1,4 +1,3 @@
-// app/api/auth/signup/route.ts
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
@@ -8,7 +7,7 @@ export async function POST() {
   try {
     await connectDB();
 
-    // Get current user from Clerk (this works even without auth middleware)
+    // Get current user from Clerk 
     const clerkUser = await currentUser();
     if (!clerkUser) {
       return NextResponse.json({ error: "No authenticated user found" }, { status: 401 });

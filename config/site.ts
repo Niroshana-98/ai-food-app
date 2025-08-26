@@ -1,5 +1,3 @@
-// config/site.ts
-
 export const siteConfig = {
   name: process.env.NEXT_PUBLIC_APP_NAME || "DishAI",
   tagline:

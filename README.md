@@ -14,8 +14,8 @@ An AI-powered food recommendation app built with Next.js, Clerk, MongoDB, and Ta
 4. Run: `npm run dev`
 
 ## Environment Variables
+- NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 - CLERK_SECRET_KEY
-- CLERK_PUBLISHABLE_KEY
 - MONGODB_URI
 
 ## Deployment

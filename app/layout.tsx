@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google"
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
 import AuthHandler from "@/components/AuthHandler";
+
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "AI Food Recommendation App",
@@ -16,10 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
-        <body suppressHydrationWarning>
-          <Navbar />
+        <body suppressHydrationWarning className={inter.className}>
+          {/* <Navbar /> */}
           <AuthHandler /> 
-          <main>{children}</main>
+          {children}
         </body>
       </html>
     </ClerkProvider>

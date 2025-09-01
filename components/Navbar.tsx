@@ -1,5 +1,4 @@
 'use client';
-
 import { ChefHat } from 'lucide-react';
 import { useUser, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
@@ -13,15 +12,15 @@ export default function Navbar() {
 
   return (
     <nav className="flex items-center justify-between p-6 bg-white/80 backdrop-blur-sm border-b">
-      
+
       <div className="flex items-center space-x-2">
         <ChefHat className="h-8 w-8 text-orange-600" />
         <Link href="/" className="text-lg font-semibold">
-            <span className="text-2xl font-bold text-gray-900">{siteConfig.name}</span>
+          <span className="text-2xl font-bold text-gray-900">{siteConfig.name}</span>
         </Link>
       </div>
 
-      
+
       <div className="flex items-center space-x-4">
         {isSignedIn ? (
           <>
@@ -29,7 +28,7 @@ export default function Navbar() {
               <Button variant="ghost">Dashboard</Button>
             </Link>
             {isAdmin && (
-              <Link href="/admin">
+               <Link href="/admin">
                 <Button variant="ghost">Admin</Button>
               </Link>
             )}

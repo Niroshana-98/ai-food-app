@@ -1,19 +1,22 @@
 'use client';
-
+import "dotenv/config";
+import { useUser, SignInButton, SignUpButton, UserButton, SignOutButton } from '@clerk/nextjs';
 import { useState } from "react";
+import { Button } from '@/components/ui/button'
 import { Hero } from "@/components/Hero";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Utensils, MapPin, Heart } from "lucide-react";
+import { Search, MapPin, Clock, Star, ChefHat, Utensils, Heart } from 'lucide-react'
 import { siteConfig } from "@/config/site";
 import { DishSuggestionScreen } from "./dish-suggestion-screen";
 import { RestaurantSuggestionScreen } from "./restaurant-suggestion-screen";
 import { UserDashboard } from "./user-dashboard";
-import { AdminDashboard } from "./admin-dashboard";
+import { AdminDashboard } from "./admin-dashboard/admin-dashboard";
 
 export function LandingPage() {
   const [currentScreen, setCurrentScreen] = useState("landing");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, isSignedIn } = useUser();
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -28,7 +31,46 @@ export function LandingPage() {
       default:
         return (
           <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50">
-            
+
+            {/* Navigation */}
+            <nav className="flex items-center justify-between p-6 bg-white/80 backdrop-blur-sm border-b">
+              <div className="flex items-center space-x-2">
+                <ChefHat className="h-8 w-8 text-orange-600" />
+                <span className="text-2xl font-bold text-gray-900">DishAI</span>
+              </div>
+              <div className="flex items-center space-x-4">
+                {isSignedIn ? (
+                  <>
+                    <Button variant="ghost" onClick={() => setCurrentScreen('user-dashboard')}>
+                      Dashboard
+                    </Button>
+                    <Button variant="ghost" onClick={() => setCurrentScreen('admin-dashboard')}>
+                      Admin
+                    </Button>
+                    <SignOutButton>
+                      <Button variant="outline">
+                        Logout
+                      </Button>
+                    </SignOutButton>
+                    <UserButton afterSignOutUrl="/" />
+                  </>
+                ) : (
+                  <>
+                    <SignInButton mode="modal">
+                      <Button variant="ghost" onClick={() => setIsLoggedIn(true)}>
+                        Login
+                      </Button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <Button onClick={() => setIsLoggedIn(true)}>
+                        Sign Up
+                      </Button>
+                    </SignUpButton>
+                  </>
+                )}
+              </div>
+            </nav>
+
             <div className="container mx-auto px-6 py-20">
               <Hero onGetRecommendations={() => setCurrentScreen("dish-suggestion")} />
 

@@ -49,6 +49,16 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
     },
   })
 
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean
+    restaurant: any
+    loading: boolean
+  }>({
+    isOpen: false,
+    restaurant: null,
+    loading: false,
+  })
+
     // Cuisine options constant
   const cuisineOptions = [
     "Indian",
@@ -191,6 +201,41 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
       showToast("Failed to update restaurant. Please try again.", "error")
     } finally {
       setEditLoading(false)
+    }
+  }
+
+   const handleDeleteRestaurant = async () => {
+    if (!deleteConfirmation.restaurant) return
+
+    setDeleteConfirmation((prev) => ({ ...prev, loading: true }))
+
+    try {
+      await api.deleteRestaurant(deleteConfirmation.restaurant._id)
+      showToast("Restaurant deleted successfully!", "success")
+      setDeleteConfirmation({ isOpen: false, restaurant: null, loading: false })
+      fetchAdminData() // Refresh data
+    } catch (error) {
+      console.error("Error deleting restaurant:", error)
+      showToast("Failed to delete restaurant. Please try again.", "error")
+      setDeleteConfirmation((prev) => ({ ...prev, loading: false }))
+    }
+  }
+
+    const openDeleteConfirmation = (restaurant: any) => {
+    setDeleteConfirmation({
+      isOpen: true,
+      restaurant,
+      loading: false,
+    })
+  }
+
+    const closeDeleteConfirmation = () => {
+    if (!deleteConfirmation.loading) {
+      setDeleteConfirmation({
+        isOpen: false,
+        restaurant: null,
+        loading: false,
+      })
     }
   }
 
@@ -352,7 +397,7 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
                           <Button variant="outline" size="sm" onClick={() => handleEditRestaurant(restaurant)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => openDeleteConfirmation(restaurant)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -716,6 +761,97 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
           </Card>
         </div>
       )}
+
+       {/* Delete Confirmation Modal */}
+      {deleteConfirmation.isOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl text-red-600 flex items-center">
+                <Trash2 className="h-5 w-5 mr-2" />
+                Delete Restaurant
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <p className="text-gray-700">
+                  Are you sure you want to delete{" "}
+                  <span className="font-semibold text-gray-900">{deleteConfirmation.restaurant?.name}</span>?
+                </p>
+
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fillRule="evenodd"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div className="text-sm">
+                      <h4 className="font-medium text-red-800 mb-1">Warning</h4>
+                      <p className="text-red-700">
+                        This action cannot be undone. All associated dishes, orders, and data will be permanently
+                        removed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {deleteConfirmation.restaurant && (
+                  <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Restaurant:</span>
+                      <span className="font-medium">{deleteConfirmation.restaurant.name}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Status:</span>
+                      <Badge variant={deleteConfirmation.restaurant.status === "active" ? "default" : "secondary"}>
+                        {deleteConfirmation.restaurant.status}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Total Orders:</span>
+                      <span className="font-medium">{deleteConfirmation.restaurant.totalOrders || 0}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-white hover:bg-gray-50"
+                  onClick={closeDeleteConfirmation}
+                  disabled={deleteConfirmation.loading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleDeleteRestaurant}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  disabled={deleteConfirmation.loading}
+                >
+                  {deleteConfirmation.loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Restaurant
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      <ToastContainer />
     </div>
   )
 }

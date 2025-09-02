@@ -1,9 +1,10 @@
+// app/sign-in/[[...rest]]/page.tsx
 import { SignIn } from "@clerk/nextjs";
 
-export default function SignInPage() {
+export default function Page() {
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <SignIn path="/sign-in" routing="path" signUpUrl="/sign-up" />
+      <SignIn routing="path" path="/sign-in" />
     </div>
   );
 }

@@ -1,4 +1,3 @@
-// app/dashboard/page.tsx
 "use client";
 import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";

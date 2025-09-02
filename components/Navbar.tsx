@@ -9,30 +9,25 @@ import { siteConfig } from '@/config/site';
 export default function Navbar() {
   const { user, isSignedIn } = useUser();
 
-  const isAdmin = user?.publicMetadata?.role === 'admin';
+  const role = user?.publicMetadata?.role;
 
   return (
     <nav className="flex items-center justify-between p-6 bg-white/80 backdrop-blur-sm border-b">
-      
       <div className="flex items-center space-x-2">
         <ChefHat className="h-8 w-8 text-orange-600" />
         <Link href="/" className="text-lg font-semibold">
-            <span className="text-2xl font-bold text-gray-900">{siteConfig.name}</span>
+          <span className="text-2xl font-bold text-gray-900">{siteConfig.name}</span>
         </Link>
       </div>
 
-      
+      {/* Right side */}
       <div className="flex items-center space-x-4">
         {isSignedIn ? (
           <>
             <Link href="/dashboard">
               <Button variant="ghost">Dashboard</Button>
             </Link>
-            {isAdmin && (
-              <Link href="/admin">
-                <Button variant="ghost">Admin</Button>
-              </Link>
-            )}
+
             <UserButton afterSignOutUrl="/" />
           </>
         ) : (

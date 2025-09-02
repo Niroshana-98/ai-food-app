@@ -1,16 +1,11 @@
-import mongoose, { Schema, model, models } from "mongoose";
+import mongoose from "mongoose";
 
-interface IUser {
-  clerkId: string;
-  email: string;
-  name: string;
-}
-
-const userSchema = new Schema<IUser>({
+const UserSchema = new mongoose.Schema({
   clerkId: { type: String, required: true, unique: true },
   email: { type: String, required: true },
-  name: { type: String, required: true },
+  name: { type: String },
+  role: { type: String, enum: ["admin", "restaurant_owner", "customer"], default: "customer" },
 });
 
-const User = models.User || model<IUser>("User", userSchema);
+const User = mongoose.models.User || mongoose.model("User", UserSchema);
 export default User;

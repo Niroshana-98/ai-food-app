@@ -7,18 +7,20 @@ import AuthHandler from "@/components/AuthHandler";
 export const metadata: Metadata = {
   title: "AI Food Recommendation App",
   description: "AI-powered food recommendation website with Clerk & MongoDB",
-  icons: {
-    icon: "/favicon.svg", 
-  },
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      // default landing; RoleRedirect will take over post-auth
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
+    >
       <html lang="en" suppressHydrationWarning>
         <body suppressHydrationWarning>
           <Navbar />
-          <AuthHandler /> 
+          <AuthHandler />
           <main>{children}</main>
         </body>
       </html>

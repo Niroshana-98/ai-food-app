@@ -4,20 +4,15 @@ import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 
 export async function GET() {
-  const { userId, sessionClaims } = await auth(); // ✅ await here
+  const { userId, sessionClaims } = await auth(); 
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const role = (sessionClaims?.publicMetadata as any)?.role || "customer";
   return NextResponse.json({ role });
 }
 
-/**
- * Body:
- *   { userId: string, role: "admin" | "restaurantOwner" | "customer" }
- * Only admins may set roles.
- */
 export async function POST(req: Request) {
-  const { userId, sessionClaims } = await auth(); // ✅ await here
+  const { userId, sessionClaims } = await auth(); 
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const myRole = (sessionClaims?.publicMetadata as any)?.role;
@@ -34,13 +29,12 @@ export async function POST(req: Request) {
   try {
     await connectDB();
 
-    // ✅ Correct Clerk update
     const clerk = await clerkClient();
     await clerk.users.updateUser(targetUserId, {
       publicMetadata: { role },
     });
 
-    // ✅ Update MongoDB mirror (if exists)
+    // Update MongoDB mirror (if exists)
     await User.findOneAndUpdate({ clerkId: targetUserId }, { role }, { new: true });
 
     return NextResponse.json({ success: true });

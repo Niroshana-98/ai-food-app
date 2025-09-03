@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -22,21 +22,33 @@ interface EditRestaurantModalProps {
   onSuccess: () => void
 }
 
+interface EditFormData {
+  name: string
+  description: string
+  phone: string
+  email: string
+  website: string
+  address: string
+  cuisineTypes: string[]
+  status: string
+  operatingHours: Record<string, OperatingHours>
+}
+
 export function EditRestaurantModal({ restaurant, isOpen, onClose, onSuccess }: EditRestaurantModalProps) {
   const [editErrors, setEditErrors] = useState<Record<string, string>>({})
   const [editLoading, setEditLoading] = useState(false)
   const { showToast } = useToast()
   const [customEditCuisine, setCustomEditCuisine] = useState("")
-  const [editFormData, setEditFormData] = useState({
-    name: restaurant?.name || "",
-    description: restaurant?.description || "",
-    phone: restaurant?.phone || "",
-    email: restaurant?.email || "",
-    website: restaurant?.website || "",
-    address: restaurant?.address || "",
-    cuisineTypes: restaurant?.cuisineTypes || [],
-    status: restaurant?.status || "active",
-    operatingHours: restaurant?.operatingHours || {
+  const [editFormData, setEditFormData] = useState<EditFormData>({
+    name: "",
+    description: "",
+    phone: "",
+    email: "",
+    website: "",
+    address: "",
+    cuisineTypes: [],
+    status: "active",
+    operatingHours: {
       monday: { open: "09:00", close: "22:00", closed: false },
       tuesday: { open: "09:00", close: "22:00", closed: false },
       wednesday: { open: "09:00", close: "22:00", closed: false },
@@ -46,6 +58,30 @@ export function EditRestaurantModal({ restaurant, isOpen, onClose, onSuccess }: 
       sunday: { open: "10:00", close: "21:00", closed: false },
     } as Record<string, OperatingHours>,
   })
+
+  useEffect(() => {
+    if (restaurant) {
+      setEditFormData({
+        name: restaurant.name || "",
+        description: restaurant.description || "",
+        phone: restaurant.phone || "",
+        email: restaurant.email || "",
+        website: restaurant.website || "",
+        address: restaurant.address || "",
+        cuisineTypes: restaurant.cuisineTypes || [],
+        status: restaurant.status || "active",
+        operatingHours: restaurant.operatingHours || {
+          monday: { open: "09:00", close: "22:00", closed: false },
+          tuesday: { open: "09:00", close: "22:00", closed: false },
+          wednesday: { open: "09:00", close: "22:00", closed: false },
+          thursday: { open: "09:00", close: "22:00", closed: false },
+          friday: { open: "09:00", close: "23:00", closed: false },
+          saturday: { open: "09:00", close: "23:00", closed: false },
+          sunday: { open: "10:00", close: "21:00", closed: false },
+        },
+      })
+    }
+  }, [restaurant])
 
   const cuisineOptions = [
     "Indian",
@@ -271,8 +307,8 @@ export function EditRestaurantModal({ restaurant, isOpen, onClose, onSuccess }: 
                       key={cuisine}
                       variant={editFormData.cuisineTypes.includes(cuisine) ? "default" : "secondary"}
                       className={`cursor-pointer transition-all duration-200 px-3 py-1 ${editFormData.cuisineTypes.includes(cuisine)
-                          ? "bg-orange-600 hover:bg-orange-700 text-white"
-                          : "bg-gray-100 hover:bg-orange-100 text-gray-700"
+                        ? "bg-orange-600 hover:bg-orange-700 text-white"
+                        : "bg-gray-100 hover:bg-orange-100 text-gray-700"
                         }`}
                       onClick={() => toggleEditCuisine(cuisine)}
                     >

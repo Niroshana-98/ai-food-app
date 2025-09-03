@@ -12,6 +12,7 @@ import { ArrowLeft, Plus, Edit, Trash2, Users, ShoppingBag, TrendingUp, MapPin }
 import { api } from "@/lib/api"
 import AddRestaurantForm from "./add-restaurant-form"
 import { useToast } from "@/components/ui/toast"
+import AddDishForm from "./add-dish-form"
 
 import { AddRestaurantModal } from "./modals/add-restaurant"
 import { EditRestaurantModal } from "./modals/edit-restaurant"
@@ -26,6 +27,7 @@ interface AdminDashboardProps {
 export function AdminDashboard({ onBack }: AdminDashboardProps) {
   const [showAddRestaurant, setShowAddRestaurant] = useState(false)
   const [restaurants, setRestaurants] = useState<any[]>([])
+  const [dishes, setDishes] = useState<any[]>([])
   const [users, setUsers] = useState<any[]>([])
   const [showAddDish, setShowAddDish] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -40,20 +42,22 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
 
   const fetchAdminData = async () => {
     try {
-      const [restaurantsRes, usersRes,] = await Promise.all([
+      const [restaurantsRes, usersRes, dishesRes] = await Promise.all([
         //api.getStats(),
         api.getRestaurants({ limit: 10 }),
-        //api.getDishes({ limit: 10 }),
         api.getUsers(),
+        api.getDishes({ limit: 10 }),
+
         //api.getOrders({ limit: 5 }),
       ])
 
       //setStats(statsRes.stats || {})
       setRestaurants(restaurantsRes.restaurants || [])
-      //setDishes(dishesRes.dishes || [])
+      setDishes(dishesRes.dishes || [])
       setUsers(usersRes.users || [])
       console.log(users)
       console.log(restaurantsRes)
+      console.log(dishesRes)
       //setRecentOrders(ordersRes.orders || [])
     } catch (error) {
       console.error("Error fetching admin data:", error)
@@ -62,7 +66,7 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
     }
   }
 
-   const handleAddRestaurantSuccess = () => {
+  const handleAddRestaurantSuccess = () => {
     fetchAdminData() // Refresh data
     showToast("Restaurant added successfully!", "success")
   }
@@ -94,32 +98,32 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
     { title: "Restaurants", value: "89", icon: MapPin, color: "bg-orange-500" }
   ]
 
-  const dishes = [
-    {
-      id: 1,
-      name: "Chicken Tikka Masala",
-      cuisine: "Indian",
-      price: "$16.99",
-      restaurant: "Spice Garden",
-      status: "Available"
-    },
-    {
-      id: 2,
-      name: "Pad Thai",
-      cuisine: "Thai",
-      price: "$14.99",
-      restaurant: "Thai Basil",
-      status: "Available"
-    },
-    {
-      id: 3,
-      name: "Butter Chicken",
-      cuisine: "Indian",
-      price: "$18.99",
-      restaurant: "Mumbai Palace",
-      status: "Unavailable"
-    }
-  ]
+  // const dishes = [
+  //   {
+  //     id: 1,
+  //     name: "Chicken Tikka Masala",
+  //     cuisine: "Indian",
+  //     price: "$16.99",
+  //     restaurant: "Spice Garden",
+  //     status: "Available"
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Pad Thai",
+  //     cuisine: "Thai",
+  //     price: "$14.99",
+  //     restaurant: "Thai Basil",
+  //     status: "Available"
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Butter Chicken",
+  //     cuisine: "Indian",
+  //     price: "$18.99",
+  //     restaurant: "Mumbai Palace",
+  //     status: "Unavailable"
+  //   }
+  // ]
 
   const recentOrders = [
     {
@@ -237,14 +241,14 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
                 <CardContent>
                   <div className="space-y-4">
                     {dishes.map((dish) => (
-                      <div key={dish.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div key={dish._id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                           <h3 className="font-semibold">{dish.name}</h3>
-                          <p className="text-sm text-gray-600">{dish.restaurant} • {dish.cuisine}</p>
+                          <p className="text-sm text-gray-600">{dish.restaurantId.name} • {dish.cuisineType}</p>
                           <div className="flex items-center space-x-4 mt-2">
                             <span className="font-medium text-orange-600">{dish.price}</span>
-                            <Badge variant={dish.status === 'Available' ? 'default' : 'secondary'}>
-                              {dish.status}
+                            <Badge variant={dish.available === 'Available' ? 'default' : 'secondary'}>
+                              {dish.available ? 'Available' : 'Unavailable'}
                             </Badge>
                           </div>
                         </div>
@@ -292,16 +296,16 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
           </Tabs>
         </div>
       </div>
- 
 
-       {/* Modal Components */}
+
+      {/* Modal Components */}
       <AddRestaurantModal
         isOpen={showAddRestaurant}
         onClose={() => setShowAddRestaurant(false)}
         onSuccess={handleAddRestaurantSuccess}
       />
 
-       <EditRestaurantModal
+      <EditRestaurantModal
         restaurant={editingRestaurant}
         isOpen={!!editingRestaurant}
         onClose={() => setEditingRestaurant(null)}
@@ -309,13 +313,30 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
       />
 
       {/* Add Dish Modal */}
-       <AddDishModal
-        isOpen={showAddDish}
-        onClose={() => setShowAddDish(false)}
-        onSuccess={handleAddDishSuccess}
-      />
+      {showAddDish && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-4xl max-h-[95vh] bg-white rounded-lg shadow-xl flex flex-col">
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 px-6 py-4 border-b bg-white rounded-t-lg">
+              <h2 className="text-xl font-bold text-gray-900">Add New Dish</h2>
+              <p className="text-sm text-gray-600 mt-1">Create a new dish for one of your restaurants</p>
+            </div>
 
-       {/* Delete Confirmation Modal */}
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <AddDishForm
+                onSuccess={() => {
+                  setShowAddDish(false)
+                  fetchAdminData() // Refresh data
+                }}
+                onCancel={() => setShowAddDish(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
       <DeleteRestaurantModal
         restaurant={deleteRestaurant}
         isOpen={!!deleteRestaurant}

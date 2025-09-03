@@ -78,5 +78,43 @@ export class ApiClient {
         })
     }
 
+    // Dishes
+    async getDishes(params?: {
+        restaurantId?: string
+        cuisine?: string
+        category?: string
+        available?: boolean
+        dietaryTags?: string
+        limit?: number
+        page?: number
+    }) {
+        const searchParams = new URLSearchParams(params as any)
+        return this.request(`/dishes?${searchParams}`)
+    }
+
+    async getDish(id: string) {
+        return this.request(`/dishes/${id}`)
+    }
+
+    async createDish(dishData: any) {
+        return this.request("/dishes", {
+            method: "POST",
+            body: JSON.stringify(dishData),
+        })
+    }
+
+    async updateDish(id: string, dishData: any) {
+        return this.request(`/dishes/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(dishData),
+        })
+    }
+
+    async deleteDish(id: string) {
+        return this.request(`/dishes/${id}`, {
+            method: "DELETE",
+        })
+    }
+
 }
 export const api = new ApiClient()

@@ -2,6 +2,7 @@
 import mongoose from "mongoose";
 import User from "../lib/models/User.js";
 import Restaurant from "../lib/models/Restaurant.js";
+import { Dish } from "../lib/models/Dish.js"
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://mytharindud_db_user:4zXuP5k3lkGDcH1B@dishai.xolxtbs.mongodb.net/dishAI?retryWrites=true&w=majority&appName=DishAI"
 
@@ -126,6 +127,59 @@ async function setupDatabase() {
         })
         console.log("Sample data created successfully")
         console.log(`Created ${users.length} users and ${restaurants.length} restaurants`)
+
+        // Create sample dishes
+        console.log("🍽️ Creating sample dishes...")
+        const dishes = await Dish.create([
+            {
+                name: "Chicken Tikka Masala",
+                description: "Tender chicken in creamy tomato-based curry sauce with warming spices",
+                price: 16.99,
+                category: "Main Course",
+                cuisineType: "Indian",
+                dietaryTags: ["Spicy", "Comfort Food"],
+                ingredients: ["Chicken", "Tomatoes", "Cream", "Onions", "Garlic", "Ginger", "Spices"],
+                restaurantId: restaurants[0]._id,
+                available: true,
+                preparationTime: 25,
+            },
+            {
+                name: "Vegetable Biryani",
+                description: "Fragrant basmati rice with mixed vegetables and aromatic spices",
+                price: 14.99,
+                category: "Main Course",
+                cuisineType: "Indian",
+                dietaryTags: ["Vegetarian", "Comfort Food"],
+                ingredients: ["Basmati Rice", "Mixed Vegetables", "Saffron", "Spices", "Herbs"],
+                restaurantId: restaurants[0]._id,
+                available: true,
+                preparationTime: 30,
+            },
+            {
+                name: "Butter Chicken",
+                description: "Creamy and rich chicken curry with butter and tomato sauce",
+                price: 18.99,
+                category: "Main Course",
+                cuisineType: "Indian",
+                dietaryTags: ["Spicy", "Comfort Food", "Creamy"],
+                ingredients: ["Chicken", "Butter", "Tomatoes", "Cream", "Spices"],
+                restaurantId: restaurants[1]._id,
+                available: false,
+                preparationTime: 20,
+            },
+            {
+                name: "Pad Thai",
+                description: "Classic Thai stir-fried noodles with shrimp, tofu, and peanuts",
+                price: 14.99,
+                category: "Main Course",
+                cuisineType: "Thai",
+                dietaryTags: ["Quick Bite", "Street Food"],
+                ingredients: ["Rice Noodles", "Shrimp", "Tofu", "Bean Sprouts", "Peanuts", "Lime"],
+                restaurantId: restaurants[2]._id,
+                available: true,
+                preparationTime: 15,
+            },
+        ])
 
     } catch (error) {
         console.error("Database connection failed:", error)

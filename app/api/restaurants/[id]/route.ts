@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import {connectDB} from "@/lib/mongodb"
+import { connectDB } from "@/lib/mongodb"
 import Restaurant from "@/lib/models/Restaurant"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {

@@ -18,6 +18,7 @@ import { AddRestaurantModal } from "./modals/add-restaurant"
 import { EditRestaurantModal } from "./modals/edit-restaurant"
 import { AddDishModal } from "./modals/add-dish"
 import { DeleteRestaurantModal } from "./modals/delete-restaurant"
+import { EditDishModal } from "./modals/edit-dish"
 
 interface AdminDashboardProps {
   onBack: () => void
@@ -34,7 +35,27 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
   const [editingRestaurant, setEditingRestaurant] = useState<any>(null)
   const { showToast, ToastContainer } = useToast()
   const [deleteRestaurant, setDeleteRestaurant] = useState<any>(null)
+  const [editingDish, setEditingDish] = useState<any>(null)
 
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean
+    restaurant: any
+    loading: boolean
+  }>({
+    isOpen: false,
+    restaurant: null,
+    loading: false,
+  })
+
+   const [dishDeleteConfirmation, setDishDeleteConfirmation] = useState<{
+    isOpen: boolean
+    dish: any
+    loading: boolean
+  }>({
+    isOpen: false,
+    dish: null,
+    loading: false,
+  })
 
   useEffect(() => {
     fetchAdminData()
@@ -90,6 +111,41 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
     showToast("Restaurant deleted successfully!", "success")
   }
 
+  // Dish delete handler functions
+  const handleDeleteDish = async () => {
+    if (!dishDeleteConfirmation.dish) return
+
+    setDishDeleteConfirmation((prev) => ({ ...prev, loading: true }))
+
+    try {
+      await api.deleteDish(dishDeleteConfirmation.dish._id)
+      showToast("Dish deleted successfully!", "success")
+      setDishDeleteConfirmation({ isOpen: false, dish: null, loading: false })
+      fetchAdminData() // Refresh data
+    } catch (error) {
+      console.error("Error deleting dish:", error)
+      showToast("Failed to delete dish. Please try again.", "error")
+      setDishDeleteConfirmation((prev) => ({ ...prev, loading: false }))
+    }
+  }
+
+   const openDishDeleteConfirmation = (dish: any) => {
+    setDishDeleteConfirmation({
+      isOpen: true,
+      dish,
+      loading: false,
+    })
+  }
+
+  const closeDishDeleteConfirmation = () => {
+    if (!dishDeleteConfirmation.loading) {
+      setDishDeleteConfirmation({
+        isOpen: false,
+        dish: null,
+        loading: false,
+      })
+    }
+  }
 
   const stats = [
     { title: "Total Users", value: "1,234", icon: Users, color: "bg-blue-500" },
@@ -253,10 +309,10 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => setEditingDish(dish)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm"  onClick={() => openDishDeleteConfirmation(dish)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -336,6 +392,31 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
         </div>
       )}
 
+      {/* Edit Dish Modal */}
+      {editingDish && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-4xl max-h-[95vh] bg-white rounded-lg shadow-xl flex flex-col">
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 px-6 py-4 border-b bg-white rounded-t-lg">
+              <h2 className="text-xl font-bold text-gray-900">Edit Dish - {editingDish.name}</h2>
+              <p className="text-sm text-gray-600 mt-1">Update dish information and availability</p>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <EditDishModal
+                dish={editingDish}
+                onSuccess={() => {
+                  setEditingDish(null)
+                  fetchAdminData() // Refresh data
+                }}
+                onCancel={() => setEditingDish(null)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Modal */}
       <DeleteRestaurantModal
         restaurant={deleteRestaurant}
@@ -343,6 +424,107 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
         onClose={() => setDeleteRestaurant(null)}
         onSuccess={handleDeleteSuccess}
       />
+
+      {/* Dish Delete Confirmation Modal */}
+      {dishDeleteConfirmation.isOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl text-red-600 flex items-center">
+                <Trash2 className="h-5 w-5 mr-2" />
+                Delete Dish
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <p className="text-gray-700">
+                  Are you sure you want to delete{" "}
+                  <span className="font-semibold text-gray-900">{dishDeleteConfirmation.dish?.name}</span>?
+                </p>
+
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fillRule="evenodd"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div className="text-sm">
+                      <h4 className="font-medium text-red-800 mb-1">Warning</h4>
+                      <p className="text-red-700">
+                        This action cannot be undone. The dish will be permanently removed from the menu and any
+                        associated order history will be affected.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {dishDeleteConfirmation.dish && (
+                  <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Dish:</span>
+                      <span className="font-medium">{dishDeleteConfirmation.dish.name}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Restaurant:</span>
+                      <span className="font-medium">{dishDeleteConfirmation.dish.restaurantId?.name || "Unknown"}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Price:</span>
+                      <span className="font-medium">${dishDeleteConfirmation.dish.price}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Category:</span>
+                      <Badge variant="outline" className="text-xs">
+                        {dishDeleteConfirmation.dish.category}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Status:</span>
+                      <Badge variant={dishDeleteConfirmation.dish.available ? "default" : "secondary"}>
+                        {dishDeleteConfirmation.dish.available ? "Available" : "Unavailable"}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <Button
+                  variant="outline"
+                  className="flex-1 bg-white hover:bg-gray-50"
+                  onClick={closeDishDeleteConfirmation}
+                  disabled={dishDeleteConfirmation.loading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleDeleteDish}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  disabled={dishDeleteConfirmation.loading}
+                >
+                  {dishDeleteConfirmation.loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Dish
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
       <ToastContainer />
     </div>
   )

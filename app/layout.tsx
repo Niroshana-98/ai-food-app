@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import AuthHandler from "@/components/AuthHandler";
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <html lang="en" suppressHydrationWarning>
         <body suppressHydrationWarning>
+          <Toaster position="top-center" />
           <Navbar />
           <AuthHandler />
           <main>{children}</main>

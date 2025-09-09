@@ -30,3 +30,15 @@ export async function POST() {
     return NextResponse.json({ error: "Internal Server Error", details: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
+
+
+export async function GET() {
+  try {
+    await connectDB();
+    const users = await User.find(); 
+    return NextResponse.json({ success: true, users });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
+  }
+}

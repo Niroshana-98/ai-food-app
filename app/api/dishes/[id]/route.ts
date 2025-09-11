@@ -6,7 +6,7 @@ import Dish from "@/models/Dish";
 export async function GET(_: Request, context: { params: Promise<{ id: string }> }) {
   try {
     await connectDB();
-    const { id } = await context.params; // 👈 await here
+    const { id } = await context.params; 
     const dish = await Dish.findById(id).populate("restaurant");
 
     if (!dish) {
@@ -24,7 +24,7 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
 export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
     await connectDB();
-    const { id } = await context.params; // 👈 await here
+    const { id } = await context.params; 
     const data = await req.json();
 
     const dish = await Dish.findByIdAndUpdate(id, data, { new: true });

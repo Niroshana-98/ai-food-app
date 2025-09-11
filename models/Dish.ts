@@ -7,7 +7,7 @@ export interface IDish extends Document {
   description: string;
   category: string;
   cuisineType: string;
-  preparationTime: number; // in minutes
+  preparationTime: number; 
   dietaryTags: string[]; 
   ingredients: string[];
   available: boolean;

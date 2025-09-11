@@ -1,7 +1,7 @@
 import { Restaurant, Dish } from "./types";
 
 export const api = {
-  // ------------------  RESTAURANTS ------------------
+  //  RESTAURANTS 
 
   createRestaurant: async (data: Partial<Restaurant>): Promise<Restaurant> => {
     const res = await fetch("/api/restaurants", {
@@ -48,7 +48,7 @@ export const api = {
     return res.json();
   },
 
-  // ------------------  DISHES ------------------
+  //   DISHES 
 
   createDish: async (data: Partial<Dish>): Promise<Dish> => {
     const res = await fetch("/api/dishes", {

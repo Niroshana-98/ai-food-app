@@ -91,7 +91,7 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
     fetchDishes();
   }, []);
   // Handler to remove dish from state after deletion
-  const handleDishDeleted = (deletedDishId: string) => {
+    const handleDishDeleted = (deletedDishId: string) => {
     setDishes((prev) => prev.filter((dish) => dish._id !== deletedDishId));
   };
 

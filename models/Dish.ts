@@ -11,6 +11,7 @@ export interface IDish extends Document {
   dietaryTags: string[]; 
   ingredients: string[];
   available: boolean;
+  photo?: string;
   createdAt: Date;
 }
 
@@ -26,6 +27,7 @@ const DishSchema = new Schema<IDish>(
     dietaryTags: { type: [String], default: [] },
     ingredients: { type: [String], required: true },
     available: { type: Boolean, default: true },
+    photo: { type: String, required: false },
     
   },
   { timestamps: true }

@@ -60,7 +60,7 @@ export default function RestaurantsTab({
         filteredRestaurants.map((restaurant) => (
           <div
             key={restaurant._id}
-            className="flex items-center justify-between p-4 border rounded-lg shadow-sm hover:bg-gray-100"
+            className="flex items-center justify-between p-4 border rounded-lg shadow-sm hover:bg-gray-100 hover:scale-101"
           >
             <div>
               <h3 className="font-semibold">{restaurant.name}</h3>

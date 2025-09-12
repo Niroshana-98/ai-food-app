@@ -26,6 +26,7 @@ export interface Dish {
   dietaryTags: string[];
   ingredients: string[];
   available: boolean;
+  photo?: string;
   createdAt: string;
   updatedAt: string;
 }

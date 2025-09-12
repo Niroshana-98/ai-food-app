@@ -63,9 +63,19 @@ export default function DishesTab({
         filteredDishes.map((dish) => (
           <div
             key={dish._id}
-            className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-100"
+            className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-100 hover:scale-101"
           >
-            <div>
+            {/* Dish Photo */}
+            {dish.photo && (
+              <img
+                src={dish.photo}
+                alt={dish.name}
+                className="w-24 h-24 object-cover rounded-md mr-4 border"
+              />
+            )}
+
+            {/* Dish Details */}
+            <div className="flex-1">
               <h3 className="font-semibold">{dish.name}</h3>
               <p className="text-sm text-gray-600">
                 {typeof dish.restaurant === "string"
@@ -82,7 +92,9 @@ export default function DishesTab({
                 </Badge>
               </div>
             </div>
-            <div className="flex space-x-2">
+
+            {/* Actions */}
+            <div className="flex space-x-2 ml-4">
               <Button
                 variant="outline"
                 size="sm"

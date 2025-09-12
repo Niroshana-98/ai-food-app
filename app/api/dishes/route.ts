@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Dish from "@/models/Dish";
 import Restaurant from "@/models/Restaurant";
+import fs from "fs";
+import path from "path";
+import crypto from "crypto";
 
 export async function GET() {
   try {
@@ -21,61 +24,65 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  try {
-    await connectDB();
-    const body = await req.json();
-    const {
-      restaurant: restaurantId,
-      name,
-      price,
-      description,
-      category,
-      cuisineType,
-      preparationTime,
-      dietaryTags,
-      ingredients,
-      available,
-    } = body;
+  await connectDB();
 
-    if (!restaurantId) {
-      return NextResponse.json(
-        { success: false, error: "Restaurant ID required" },
-        { status: 400 }
-      );
-    }
+  const formData = await req.formData();
+  const restaurant = formData.get("restaurant") as string;
+  const name = formData.get("name") as string;
+  const price = Number(formData.get("price"));
+  const description = formData.get("description") as string;
+  const category = formData.get("category") as string;
+  const cuisineType = formData.get("cuisineType") as string;
+  const preparationTime = Number(formData.get("preparationTime"));
+  const dietaryTags = formData.get("dietaryTags")
+    ? JSON.parse(formData.get("dietaryTags") as string)
+    : [];
+  const ingredients = formData.get("ingredients")
+    ? JSON.parse(formData.get("ingredients") as string)
+    : [];
+  const available = formData.get("available") !== "false";
 
-    // Validate restaurant
-    const restaurant = await Restaurant.findById(restaurantId);
-    if (!restaurant) {
-      return NextResponse.json(
-        { success: false, error: "Restaurant not found" },
-        { status: 404 }
-      );
-    }
+  const file = formData.get("photo") as File | null;
+  let photoPath = "";
 
-    // Create dish
-    const dish = await Dish.create({
-      restaurant: restaurant._id, // store ObjectId reference
-      name,
-      price: Number(price),
-      description,
-      category,
-      cuisineType,
-      preparationTime: Number(preparationTime),
-      dietaryTags: dietaryTags || [],
-      ingredients: ingredients || [],
-      available: available !== undefined ? available : true,
-    });
+  if (file) {
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const uploadDir = path.join(process.cwd(), "public/uploads");
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-    // Populate restaurant before returning
-    const populatedDish = await dish.populate("restaurant", "_id name");
+    // 🔑 Generate unique filename
+    const ext = path.extname(file.name); // get extension (.jpg, .png, etc.)
+    const uniqueName = crypto.randomUUID() + ext;
+    const filePath = path.join(uploadDir, uniqueName);
 
-    return NextResponse.json({ success: true, dish: populatedDish });
-  } catch (err) {
-    console.error("CREATE DISH ERROR:", err);
+    fs.writeFileSync(filePath, bytes);
+
+    photoPath = "/uploads/" + uniqueName;
+  }
+
+  const restaurantDoc = await Restaurant.findById(restaurant);
+  if (!restaurantDoc) {
     return NextResponse.json(
-      { success: false, error: "Failed to create dish" },
-      { status: 500 }
+      { success: false, error: "Restaurant not found" },
+      { status: 404 }
     );
   }
+
+  const dish = await Dish.create({
+    restaurant: restaurantDoc._id,
+    name,
+    price,
+    description,
+    category,
+    cuisineType,
+    preparationTime,
+    dietaryTags,
+    ingredients,
+    available,
+    photo: photoPath,
+  });
+
+  const populatedDish = await dish.populate("restaurant", "_id name");
+
+  return NextResponse.json({ success: true, dish: populatedDish });
 }

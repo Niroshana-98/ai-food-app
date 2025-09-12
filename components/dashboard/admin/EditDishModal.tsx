@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { api } from "@/lib/api"
 import toast from "react-hot-toast"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ChevronsUpDown } from "lucide-react"
+import { ChevronsUpDown, X } from "lucide-react"
 import {
   Command,
   CommandEmpty,
@@ -34,6 +34,8 @@ export function EditDishModal({ dish, isOpen, onSuccess, onClose }: EditDishModa
     const [loading, setLoading] = useState(false)
     const [restaurants, setRestaurants] = useState<any[]>([])
     const [loadingRestaurants, setLoadingRestaurants] = useState(true)
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
+    const [newImageFile, setNewImageFile] = useState<File | null>(null)
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -45,6 +47,7 @@ export function EditDishModal({ dish, isOpen, onSuccess, onClose }: EditDishModa
         restaurant: "",
         preparationTime: "",
         available: true,
+        photo: "",
     })
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [customDietaryTag, setCustomDietaryTag] = useState("")
@@ -98,7 +101,13 @@ export function EditDishModal({ dish, isOpen, onSuccess, onClose }: EditDishModa
                 restaurant: dish.restaurant?._id || "",
                 preparationTime: dish.preparationTime?.toString() || "",
                 available: dish.available ?? true,
+                photo: dish.photo || "",
             })
+            
+            // Set initial image preview if dish has a photo
+            if (dish.photo) {
+                setImagePreview(dish.photo)
+            }
         }
         fetchRestaurants()
     }, [dish])
@@ -119,6 +128,7 @@ export function EditDishModal({ dish, isOpen, onSuccess, onClose }: EditDishModa
             setLoadingRestaurants(false)
         }
     }
+
     const validateForm = () => {
         const newErrors: Record<string, string> = {}
 
@@ -147,6 +157,32 @@ export function EditDishModal({ dish, isOpen, onSuccess, onClose }: EditDishModa
         return Object.keys(newErrors).length === 0
     }
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0]
+            setNewImageFile(file)
+            
+            // Create image preview
+            const reader = new FileReader()
+            reader.onload = (event) => {
+                setImagePreview(event.target?.result as string)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
+    const removeImage = () => {
+        setImagePreview(null)
+        setNewImageFile(null)
+        setFormData(prev => ({ ...prev, photo: "" }))
+        
+        // Reset the file input
+        const fileInput = document.getElementById('photo') as HTMLInputElement
+        if (fileInput) {
+            fileInput.value = ''
+        }
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -154,22 +190,60 @@ export function EditDishModal({ dish, isOpen, onSuccess, onClose }: EditDishModa
 
         setLoading(true)
         try {
-            const promise = api.updateDish(dish._id, {
-            ...formData,
-            price: Number.parseFloat(formData.price),
-            preparationTime: Number.parseInt(formData.preparationTime),
-            });
-            toast.promise(
-                promise,
-                {
-                loading: "Editing dish...",
-                success: "Dish updated successfully! 🎉",
-                error: "Failed to updated dish. Please try again.",
-                }
-            );
-            await promise;
-            onSuccess();
-            onClose();
+            const updatedData: any = {
+                ...formData,
+                price: Number.parseFloat(formData.price),
+                preparationTime: Number.parseInt(formData.preparationTime),
+            }
+
+            // Handle image update
+            if (newImageFile) {
+                // Create FormData for file upload
+                const formDataWithImage = new FormData()
+                
+                // Add all form fields (matching your POST route pattern)
+                formDataWithImage.append('restaurant', updatedData.restaurant)
+                formDataWithImage.append('name', updatedData.name)
+                formDataWithImage.append('price', String(updatedData.price))
+                formDataWithImage.append('description', updatedData.description)
+                formDataWithImage.append('category', updatedData.category)
+                formDataWithImage.append('cuisineType', updatedData.cuisineType)
+                formDataWithImage.append('preparationTime', String(updatedData.preparationTime))
+                formDataWithImage.append('dietaryTags', JSON.stringify(updatedData.dietaryTags))
+                formDataWithImage.append('ingredients', JSON.stringify(updatedData.ingredients))
+                formDataWithImage.append('available', String(updatedData.available))
+                
+                // Add the new image file
+                formDataWithImage.append('photo', newImageFile)
+                
+                // Use the API function with FormData
+                const promise = api.updateDishWithFile(dish._id, formDataWithImage)
+                toast.promise(
+                    promise,
+                    {
+                        loading: "Updating dish with new image...",
+                        success: "Dish updated successfully!",
+                        error: "Failed to update dish. Please try again.",
+                    }
+                )
+                await promise
+                onSuccess()
+                onClose()
+            } else {
+                // No new image, use regular JSON update
+                const promise = api.updateDish(dish._id, updatedData)
+                toast.promise(
+                    promise,
+                    {
+                        loading: "Updating dish...",
+                        success: "Dish updated successfully!",
+                        error: "Failed to update dish. Please try again.",
+                    }
+                )
+                await promise
+                onSuccess()
+                onClose()
+            }
         } catch (error) {
             console.error("Error updating dish:", error)
             toast.error("Failed to update dish. Please try again.")
@@ -236,10 +310,10 @@ export function EditDishModal({ dish, isOpen, onSuccess, onClose }: EditDishModa
                 <div className="flex items-start justify-between px-6 py-4 border-b bg-white rounded-t-lg">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900">
-                        Edit Restaurant - {dish?.name}
+                        Edit Dish - {dish?.name}
                         </h2>
                         <p className="text-sm text-gray-600 mt-1">
-                        Update restaurant information and manage status
+                        Update dish information and manage status
                         </p>
                     </div>
 
@@ -420,6 +494,47 @@ export function EditDishModal({ dish, isOpen, onSuccess, onClose }: EditDishModa
                                         />
                                         {errors.preparationTime && <p className="text-red-500 text-xs mt-1">{errors.preparationTime}</p>}
                                     </div>
+                                </div>
+
+                                {/* Image Upload Section */}
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="photo" className="text-sm font-medium">Dish Photo</Label>
+                                        <Input
+                                            id="photo"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                            className="cursor-pointer"
+                                        />
+                                        {newImageFile && (
+                                            <p className="text-sm text-blue-600">New image selected: {newImageFile.name}</p>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Current/Preview Image */}
+                                    {imagePreview && (
+                                        <div className="relative inline-block">
+                                            <div className="relative w-full max-w-sm">
+                                                <img
+                                                    src={imagePreview}
+                                                    alt="Dish preview"
+                                                    className="w-full h-48 object-cover rounded-lg border border-gray-200 shadow-sm"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={removeImage}
+                                                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200"
+                                                    title="Remove image"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <p className="text-sm text-gray-500 mt-2">
+                                                {newImageFile ? "New image preview - Click X to remove" : "Current dish image - Click X to remove"}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

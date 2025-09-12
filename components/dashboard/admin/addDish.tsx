@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "react-hot-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ChevronsUpDown } from "lucide-react"
+import { ChevronsUpDown, X } from "lucide-react"
 import {
   Command,
   CommandEmpty,
@@ -30,6 +30,7 @@ export default function AddDishForm({ onClose, onSuccess }: AddDishFormProps) {
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [customDietaryTag, setCustomDietaryTag] = useState("")
     const [currentIngredient, setCurrentIngredient] = useState("")
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
     const [formData, setFormData] = useState({
         restaurant: "",
         name: "",
@@ -40,7 +41,8 @@ export default function AddDishForm({ onClose, onSuccess }: AddDishFormProps) {
         preparationTime: "",
         dietaryTags: [] as string[],
         ingredients: [] as string[],
-        available: true,        
+        available: true,
+        photo: null as File | null,       
         
     })
 
@@ -125,8 +127,10 @@ export default function AddDishForm({ onClose, onSuccess }: AddDishFormProps) {
       restaurant: "",
       preparationTime: "",
       available: true,
+      photo: null,
     })
     setErrors({})
+    setImagePreview(null)
     onClose()
   }
 
@@ -155,6 +159,30 @@ export default function AddDishForm({ onClose, onSuccess }: AddDishFormProps) {
             setCustomDietaryTag("")
         }
     }
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setFormData((prev) => ({ ...prev, photo: file }));
+            
+            // Create image preview
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setImagePreview(event.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const removeImage = () => {
+        setFormData((prev) => ({ ...prev, photo: null }));
+        setImagePreview(null);
+        // Reset the file input
+        const fileInput = document.getElementById('photo') as HTMLInputElement;
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    };
 
     const addIngredient = () => {
         if (currentIngredient.trim() && !formData.ingredients.includes(currentIngredient.trim())) {
@@ -190,53 +218,44 @@ export default function AddDishForm({ onClose, onSuccess }: AddDishFormProps) {
     }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!validateForm()) return;
+  e.preventDefault();
+  if (!validateForm()) return;
 
-      setLoading(true);
+  setLoading(true);
 
-      const promise = fetch("/api/dishes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+  const form = new FormData();
+  Object.entries(formData).forEach(([key, value]) => {
+    if (key === "photo" && value instanceof File) {
+      form.append("photo", value);
+    } else if (Array.isArray(value)) {
+      form.append(key, JSON.stringify(value));
+    } else if (value !== null) {
+      form.append(key, String(value));
+    }
+  });
 
-      toast.promise(
-        promise,
-        {
-          loading: "Adding dish...",
-          success: "Dish added successfully! 🎉",
-          error: "Failed to add dish. Please try again.",
-        }
-      );
+  const promise = fetch("/api/dishes", {
+    method: "POST",
+    body: form, // ✅ send multipart/form-data
+  });
 
-      try {
-        const res = await promise;
+  toast.promise(promise, {
+    loading: "Adding dish...",
+    success: "Dish added successfully! 🎉",
+    error: "Failed to add dish. Please try again.",
+  });
 
-        if (!res.ok) throw new Error("Failed to create dish");
-
-        onSuccess?.();
-        onClose();
-
-        // Reset form
-        setFormData({
-          name: "",
-          description: "",
-          price: "",
-          category: "",
-          cuisineType: "",
-          dietaryTags: [] as string[],
-          ingredients: [] as string[],
-          restaurant: "",
-          preparationTime: "",
-          available: true,
-        });
-        } catch (error) {
-          console.error("Error adding dish:", error);
-        } finally {
-          setLoading(false);
-        }
-    };
+  try {
+    const res = await promise;
+    if (!res.ok) throw new Error("Failed to create dish");
+    onSuccess?.();
+    onClose();
+  } catch (error) {
+    console.error("Error adding dish:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
     return (
         <div className="space-y-6">
@@ -392,6 +411,42 @@ export default function AddDishForm({ onClose, onSuccess }: AddDishFormProps) {
                             />
                             {errors.preparationTime && <p className="text-red-500 text-xs mt-1">{errors.preparationTime}</p>}
                         </div>
+                    </div>
+                    
+                    {/* Image Upload Section */}
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="photo" className="text-sm font-medium">Dish Photo *</Label>
+                            <Input
+                                id="photo"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                className="cursor-pointer"
+                            />
+                        </div>
+                        
+                        {/* Image Preview */}
+                        {imagePreview && (
+                            <div className="relative inline-block">
+                                <div className="relative w-full max-w-sm">
+                                    <img
+                                        src={imagePreview}
+                                        alt="Dish preview"
+                                        className="w-full h-48 object-cover rounded-lg border border-gray-200 shadow-sm"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={removeImage}
+                                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200"
+                                        title="Remove image"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-2">Click the X to remove the image</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 

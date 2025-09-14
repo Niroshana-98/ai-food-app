@@ -34,6 +34,7 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
 
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [loadingDishes, setLoadingDishes] = useState(true);
+  const [loadingRestaurants, setLoadingRestaurants] = useState(true);
 
   const [deleteRestaurantModalOpen, setDeleteRestaurantModalOpen] = useState(false);
   const [restaurantToDelete, setRestaurantToDelete] = useState<any | null>(null);
@@ -91,7 +92,7 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
     fetchDishes();
   }, []);
   // Handler to remove dish from state after deletion
-    const handleDishDeleted = (deletedDishId: string) => {
+  const handleDishDeleted = (deletedDishId: string) => {
     setDishes((prev) => prev.filter((dish) => dish._id !== deletedDishId));
   };
 
@@ -114,25 +115,22 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
 
   // Fetch restaurants from API
   useEffect(() => {
-    const fetchRestaurants = async () => {
+    const fetchRestaurents = async () => {
       try {
-        const res = await fetch("/api/restaurants", { cache: "no-store" })
-        const data = await res.json()
-
-        if (data.success) {
-          setRestaurants(data.restaurants)
-        } else {
-          console.error("Failed to load restaurants:", data.error)
-        }
+        const data = await api.getRestaurants();
+        setRestaurants(data);
       } catch (error) {
-        console.error("Error fetching restaurants:", error)
+        console.error("Failed to fetch dishes:", error);
       } finally {
-        setLoading(false)
+        setLoadingDishes(false);
       }
-    }
+    };
+    fetchRestaurents();
+  }, []);
 
-    fetchRestaurants()
-  }, [])
+  const handleRestaurantDeleted = (deletedRestaurantId: string) => {
+    setRestaurants((prev) => prev.filter((restaurant) => restaurant._id !== deletedRestaurantId));
+  };
 
   const handleEditRestaurant = (restaurant: any) => {
     setEditingRestaurant(restaurant)
@@ -238,8 +236,10 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
                 <CardContent>
                   <RestaurantsTab
                     restaurants={restaurants}
+                    loading={loadingRestaurants}
                     handleEditRestaurant={handleEditRestaurant}
                     openDeleteConfirmation={openDeleteConfirmations}
+                    onRestaurantDeleted={handleRestaurantDeleted}
                   />
                 </CardContent>
               </Card>

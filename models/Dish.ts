@@ -27,7 +27,7 @@ const DishSchema = new Schema<IDish>(
     dietaryTags: { type: [String], default: [] },
     ingredients: { type: [String], required: true },
     available: { type: Boolean, default: true },
-    photo: { type: String, required: false },
+    photo: { type: String, required: true },
     
   },
   { timestamps: true }

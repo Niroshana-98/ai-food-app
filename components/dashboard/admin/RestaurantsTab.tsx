@@ -4,25 +4,30 @@ import { useState, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Edit, Trash2, Search } from "lucide-react"
+import { Restaurant} from "@/lib/types"
 
-interface Restaurant {
+/*interface Restaurant {
   _id: string
   name: string
   cuisineTypes: string[]
   status: "pending" | "active" | "inactive" 
   createdAt: string
-}
+}*/
 
 interface RestaurantsTabProps {
   restaurants: Restaurant[]
+  loading: boolean;
   handleEditRestaurant: (restaurant: Restaurant) => void
-  openDeleteConfirmation: (restaurant: Restaurant) => void
+  openDeleteConfirmation: (restaurant: Restaurant) => void 
+  onRestaurantDeleted: (restaurantId: string) => void
 }
 
 export default function RestaurantsTab({
   restaurants,
+  loading,
   handleEditRestaurant,
   openDeleteConfirmation,
+  onRestaurantDeleted,
 }: RestaurantsTabProps) {
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -62,7 +67,14 @@ export default function RestaurantsTab({
             key={restaurant._id}
             className="flex items-center justify-between p-4 border rounded-lg shadow-sm hover:bg-gray-100 hover:scale-101"
           >
-            <div>
+            {restaurant.photo && (
+              <img
+                src={restaurant.photo}
+                alt={restaurant.name}
+                className="w-24 h-24 object-cover rounded-md mr-4 border"
+              />
+            )}
+            <div className="flex-1">
               <h3 className="font-semibold">{restaurant.name}</h3>
               <p className="text-sm text-gray-600">
                 {restaurant.cuisineTypes?.join(", ")} Cuisine

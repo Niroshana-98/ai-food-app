@@ -10,6 +10,7 @@ export interface IRestaurant extends Document {
   cuisineTypes: string[];
   operatingHours: Record<string, { open: string; close: string; closed: boolean }>;
   status: "pending" | "active" | "inactive";
+  photo?: string; 
   createdAt: Date;
 }
 
@@ -26,8 +27,9 @@ const RestaurantSchema = new Schema<IRestaurant>(
     status: {
       type: String,
       enum: ["pending", "active", "inactive"],
-      default: "pending",
+      default: "active",
     },
+    photo: { type: String, required: true },
   },
   { timestamps: true }
 );

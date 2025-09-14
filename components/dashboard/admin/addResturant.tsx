@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { api } from "@/lib/api"
-import { toast } from "react-hot-toast";
+import { toast } from "react-hot-toast"
+import { ChevronsUpDown, X } from "lucide-react"
 
 interface AddRestaurantFormProps {
   onSuccess: () => void
@@ -17,10 +18,10 @@ interface AddRestaurantFormProps {
 }
 
 export default function AddRestaurantForm({ onSuccess, onCancel }: AddRestaurantFormProps) {
-  //const { showToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [customCuisine, setCustomCuisine] = useState("")
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -38,6 +39,7 @@ export default function AddRestaurantForm({ onSuccess, onCancel }: AddRestaurant
       saturday: { open: "09:00", close: "23:00", closed: false },
       sunday: { open: "10:00", close: "21:00", closed: false },
     },
+    photo: null as File | null,
   })
 
   const cuisineOptions = [
@@ -75,37 +77,74 @@ export default function AddRestaurantForm({ onSuccess, onCancel }: AddRestaurant
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault()
 
-  if (!validateForm()) return;
+    if (!validateForm()) return
 
-  setLoading(true);
+    setLoading(true)
 
-  try {
-    await toast.promise(
-      api.createRestaurant({
-        ...formData,
-        status: "pending",
-      }),
-      {
-        loading: "Submitting restaurant... ⏳",
-        success: "Restaurant created successfully! 🎉 ",
-        error: "Failed to create restaurant. Please try again.",
+    const form = new FormData()
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === "photo" && value instanceof File) {
+        form.append("photo", value)
+      } else if (Array.isArray(value) || typeof value === "object") {
+        form.append(key, JSON.stringify(value))
+      } else if (value !== null) {
+        form.append(key, String(value))
       }
-    );
+    })
 
-    onSuccess();
+    const promise = fetch("/api/restaurants", {
+      method: "POST",
+      body: form, // ✅ send multipart/form-data
+    })
+
+    toast.promise(promise, {
+      loading: "Adding restaurant...",
+      success: "Restaurant added successfully! 🎉",
+      error: "Failed to add restaurant. Please try again.",
+    })
+
+    try {
+      const res = await promise
+      if (!res.ok) throw new Error("Failed to create restaurant")
+      onSuccess?.()
+      onCancel()
     } catch (error) {
-      console.error("Error creating restaurant:", error);
+      console.error("Error adding restaurant:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
+
+  const removeImage = () => {
+    setFormData((prev) => ({ ...prev, photo: null }))
+    setImagePreview(null)
+    // Reset the file input
+    const fileInput = document.getElementById("photo") as HTMLInputElement
+    if (fileInput) {
+      fileInput.value = ""
+    }
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }))
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      setFormData((prev) => ({ ...prev, photo: file }))
+
+      // Create image preview
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        setImagePreview(event.target?.result as string)
+      }
+      reader.readAsDataURL(file)
     }
   }
 
@@ -235,6 +274,43 @@ export default function AddRestaurantForm({ onSuccess, onCancel }: AddRestaurant
               className={`min-h-[60px] resize-none ${errors.address ? "border-red-500 focus:border-red-500" : ""}`}
             />
             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="photo" className="text-sm font-medium">
+                Restaurant Photo *
+              </Label>
+              <Input
+                id="photo"
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="cursor-pointer"
+              />
+            </div>
+
+            {/* Image Preview */}
+            {imagePreview && (
+              <div className="relative inline-block">
+                <div className="relative w-full max-w-sm">
+                  <img
+                    src={imagePreview}
+                    alt="Restaurant preview"
+                    className="w-full h-48 object-cover rounded-lg border border-gray-200 shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200"
+                    title="Remove image"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">Click the X to remove the image</p>
+              </div>
+            )}
           </div>
         </div>
 

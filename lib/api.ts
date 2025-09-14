@@ -41,6 +41,18 @@ export const api = {
       return result.restaurant;
     },
 
+    // New function for updating restaurant with file upload
+    updateRestaurantWithFile: async (id: string, formData: FormData): Promise<Restaurant> => {
+      const res = await fetch(`/api/restaurants/${id}`, {
+        method: "PUT",
+        body: formData, // Send FormData directly for file upload
+      });
+
+      if (!res.ok) throw new Error("Failed to update restaurant");
+      const result = await res.json();
+      return result.restaurant;
+    },
+
     deleteRestaurant: async (id: string): Promise<{ message: string }> => {
       const res = await fetch(`/api/restaurants/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete restaurant");

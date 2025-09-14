@@ -2,14 +2,13 @@ export interface Restaurant {
   _id: string;
   name: string;
   description: string;
-  cuisineTypes: string[];
-  address: string;
   phone: string;
   email: string;
   website?: string;
-  rating: number;
-  totalOrders: number;
+  address: string;
+  cuisineTypes: string[];
   status: "active" | "inactive" | "pending";
+  photo?: string;
   createdAt: string;
   updatedAt: string;
 }

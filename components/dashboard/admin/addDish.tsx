@@ -218,44 +218,44 @@ export default function AddDishForm({ onClose, onSuccess }: AddDishFormProps) {
     }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!validateForm()) return;
+        e.preventDefault();
+        if (!validateForm()) return;
 
-  setLoading(true);
+        setLoading(true);
 
-  const form = new FormData();
-  Object.entries(formData).forEach(([key, value]) => {
-    if (key === "photo" && value instanceof File) {
-      form.append("photo", value);
-    } else if (Array.isArray(value)) {
-      form.append(key, JSON.stringify(value));
-    } else if (value !== null) {
-      form.append(key, String(value));
-    }
-  });
+        const form = new FormData();
+        Object.entries(formData).forEach(([key, value]) => {
+            if (key === "photo" && value instanceof File) {
+            form.append("photo", value);
+            } else if (Array.isArray(value)) {
+            form.append(key, JSON.stringify(value));
+            } else if (value !== null) {
+            form.append(key, String(value));
+            }
+        });
 
-  const promise = fetch("/api/dishes", {
-    method: "POST",
-    body: form, // ✅ send multipart/form-data
-  });
+        const promise = fetch("/api/dishes", {
+            method: "POST",
+            body: form, // ✅ send multipart/form-data
+        });
 
-  toast.promise(promise, {
-    loading: "Adding dish...",
-    success: "Dish added successfully! 🎉",
-    error: "Failed to add dish. Please try again.",
-  });
+        toast.promise(promise, {
+            loading: "Adding dish...",
+            success: "Dish added successfully! 🎉",
+            error: "Failed to add dish. Please try again.",
+        });
 
-  try {
-    const res = await promise;
-    if (!res.ok) throw new Error("Failed to create dish");
-    onSuccess?.();
-    onClose();
-  } catch (error) {
-    console.error("Error adding dish:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+        try {
+            const res = await promise;
+            if (!res.ok) throw new Error("Failed to create dish");
+            onSuccess?.();
+            onClose();
+        } catch (error) {
+            console.error("Error adding dish:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="space-y-6">

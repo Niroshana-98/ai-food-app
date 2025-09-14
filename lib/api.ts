@@ -103,4 +103,12 @@ export const api = {
       if (!res.ok) throw new Error("Failed to delete dish");
       return res.json();
     },
+
+    getDishesByCuisine: async (cuisine: string): Promise<Dish[]> => {
+      const res = await fetch(`/api/dishes?cuisine=${encodeURIComponent(cuisine)}`);
+      if (!res.ok) throw new Error("Failed to fetch dishes by cuisine");
+      const result = await res.json();
+      return result.dishes;
+    },
+
 };

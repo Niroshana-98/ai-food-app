@@ -6,12 +6,33 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await connectDB();
 
-    // Populate restaurant with _id and name
-    const dishes = await Dish.find().populate("restaurant", "_id name");
+    const { searchParams } = new URL(req.url);
+    const cuisine = searchParams.get("cuisine");
+
+    let dishes;
+    if (cuisine) {
+      // Filter by cuisine
+      dishes = await Dish.find({ cuisineType: cuisine }).populate("restaurant", "_id name");
+    } else {
+      // Pick 6 random dishes
+      dishes = await Dish.aggregate([
+        { $sample: { size: 6 } }, // random 6
+        {
+          $lookup: {
+            from: "restaurants",
+            localField: "restaurant",
+            foreignField: "_id",
+            as: "restaurant",
+          },
+        },
+        { $unwind: "$restaurant" },
+        { $project: { "restaurant._id": 1, "restaurant.name": 1, name: 1, price: 1, photo: 1 } },
+      ]);
+    }
 
     return NextResponse.json({ success: true, dishes });
   } catch (err) {
@@ -22,6 +43,8 @@ export async function GET() {
     );
   }
 }
+
+
 
 export async function POST(req: Request) {
   await connectDB();

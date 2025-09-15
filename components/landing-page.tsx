@@ -33,7 +33,7 @@ export function LandingPage() {
       const dishes = await api.getDishes(); // fetch all dishes
       if (dishes.length > 0) {
         const shuffled = dishes.sort(() => 0.5 - Math.random());
-        setRandomDishes(shuffled.slice(0, 6)); // take 6 random
+        setRandomDishes(shuffled.slice(0, 8)); // take 6 random
       }
     } catch (err) {
       console.error("Error fetching random dishes:", err);
@@ -124,7 +124,7 @@ export function LandingPage() {
                   {randomLoading ? (
                     <p className="text-center text-gray-500">Fetching dishes...</p>
                   ) : (
-                    <div className="grid md:grid-cols-3 gap-6">
+                    <div className="grid md:grid-cols-4 gap-6">
                       {randomDishes.map((dish) => (
                         <Card key={dish._id} className="p-4 hover:shadow-md">
                           {dish.photo && (

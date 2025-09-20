@@ -222,9 +222,10 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
 
           {/* Tabs */}
           <Tabs defaultValue="restaurants" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
               <TabsTrigger value="dishes">Dishes</TabsTrigger>
+              <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="orders">Orders</TabsTrigger>
             </TabsList>
 

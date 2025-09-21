@@ -241,7 +241,7 @@ export function EditRestaurantModal({ restaurant, isOpen, onClose, onSuccess }: 
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
             <div className="w-full max-w-4xl max-h-[95vh] bg-white rounded-lg shadow-xl flex flex-col">
                 
                 {/* Modal Header */}

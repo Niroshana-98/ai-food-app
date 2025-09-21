@@ -10,12 +10,15 @@ import AddRestaurantModal from "./dashboard/admin/AddRestaurantModal"
 import AddDishModal from "./dashboard/admin/AddDishModal"
 import DishesTab from "./dashboard/admin/DishesTab"
 import OrderTab from "./dashboard/admin/OrderTab"
+import UsersTab from "./dashboard/admin/UserTab"
 import { api } from "@/lib/api"
 import { DeleteDishModal } from "./dashboard/admin/deleteDish"
 import { DeleteRestaurantModal } from "./dashboard/admin/deleteRestaurant"
 import {EditRestaurantModal} from "./dashboard/admin/EditRestaurantModal"
 import { EditDishModal } from "./dashboard/admin/EditDishModal"
 import { Dish } from "@/lib/types"
+import { EditUserModal } from "./dashboard/admin/EditUserModal"
+import type { User } from "./dashboard/admin/UserTab"
 
 interface AdminDashboardProps {
   onBack: () => void
@@ -38,6 +41,25 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
 
   const [deleteRestaurantModalOpen, setDeleteRestaurantModalOpen] = useState(false);
   const [restaurantToDelete, setRestaurantToDelete] = useState<any | null>(null);
+
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user)
+  }
+
+  const handleUserEditSuccess = async () => {
+    // Refresh users from API after update
+    try {
+      const res = await fetch("/api/auth/signup", { cache: "no-store" })
+      const data = await res.json()
+      if (data.success) {
+        setUsers(data.users)
+      }
+    } catch (error) {
+      console.error("Failed to refresh users:", error)
+    }
+  }
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -213,6 +235,13 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
         onSuccess={handleDeleteSuccesss}
       />
 
+      <EditUserModal
+        user={editingUser}
+        isOpen={!!editingUser}
+        onClose={() => setEditingUser(null)}
+        onSuccess={handleUserEditSuccess}
+      />
+
       
 
       <div className="container mx-auto px-6 py-8">
@@ -222,9 +251,10 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
 
           {/* Tabs */}
           <Tabs defaultValue="restaurants" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="restaurants">Restaurants</TabsTrigger>
               <TabsTrigger value="dishes">Dishes</TabsTrigger>
+              <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="orders">Orders</TabsTrigger>
             </TabsList>
 
@@ -257,6 +287,23 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
                     handleEditDish={handleEditDish}
                     openDeleteConfirmation={openDeleteConfirmation}
                     onDishDeleted={handleDishDeleted}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="users" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>User Management</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UsersTab
+                    users={users}
+                    loading={loadingUsers}
+                    handleEditUser={handleEditUser}
+                    openDeleteConfirmation={(user) => {}}
+                    onUserDeleted={(userId) => {}}
                   />
                 </CardContent>
               </Card>

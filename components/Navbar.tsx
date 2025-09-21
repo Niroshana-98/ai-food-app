@@ -28,6 +28,10 @@ export default function Navbar() {
               <Button variant="ghost">Dashboard</Button>
             </Link>
 
+            <Link href="/profile">
+              <Button variant="ghost">Profile</Button>
+            </Link>
+
             <UserButton afterSignOutUrl="/" />
           </>
         ) : (

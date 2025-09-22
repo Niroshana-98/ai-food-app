@@ -21,7 +21,6 @@ export async function POST() {
       clerkId: clerkUser.id,
       email: clerkUser.emailAddresses[0]?.emailAddress || "",
       name: clerkUser.fullName || clerkUser.firstName || "",
-      createdAt: new Date(),
     });
 
     return NextResponse.json({ message: "User registered", user: newUser }, { status: 201 });

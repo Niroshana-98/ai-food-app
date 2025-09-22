@@ -29,3 +29,21 @@ export interface Dish {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface User {
+  _id: string;
+  clerkId: string;
+  email: string;
+  name?: string;
+  phone?: string;
+  role: "admin" | "restaurant_owner" | "customer";
+  status: "active" | "inactive" | "suspended";
+  dateOfBirth?: string ;
+  address?: string;
+  city?: string;
+  district?: string;
+  country?: string;
+  zipCode?: string;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -59,6 +59,14 @@ export const api = {
       return res.json();
     },
 
+    getRestaurantsByCuisine: async (cuisine: string): Promise<Restaurant[]> => {
+      const res = await fetch(`/api/restaurants?cuisine=${encodeURIComponent(cuisine)}`);
+      if (!res.ok) throw new Error("Failed to fetch restaurants by cuisine");
+      const result = await res.json();
+      return result.restaurants;
+    },
+
+
     //   DISHES
     createDish: async (data: Partial<Dish>): Promise<Dish> => {
       const res = await fetch("/api/dishes", {

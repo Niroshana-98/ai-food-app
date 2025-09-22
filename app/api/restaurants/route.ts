@@ -6,10 +6,20 @@ import path from "path";
 import crypto from "crypto";
 
 //  GET: List restaurants
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await connectDB();
-    const restaurants = await Restaurant.find().sort({ createdAt: -1 });
+
+    const { searchParams } = new URL(req.url);
+    const cuisine = searchParams.get("cuisine");
+
+    let query = {};
+    if (cuisine) {
+      query = { cuisineTypes: { $in: [cuisine] } }; 
+    }
+
+    const restaurants = await Restaurant.find(query).sort({ createdAt: -1 });
+
     return NextResponse.json({ success: true, restaurants });
   } catch (error) {
     console.error("Error fetching restaurants:", error);

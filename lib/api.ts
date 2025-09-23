@@ -77,21 +77,21 @@ export const api = {
 
       if (!res.ok) throw new Error("Failed to create dish");
       const result = await res.json();
-      return result.dish; // ✅ already populated with restaurant { _id, name }
+      return result.dish; 
     },
 
     getDishes: async (): Promise<Dish[]> => {
       const res = await fetch("/api/dishes");
       if (!res.ok) throw new Error("Failed to fetch dishes");
       const result = await res.json();
-      return result.dishes; // ✅ each dish has restaurant { _id, name }
+      return result.dishes; 
     },
 
     getDish: async (id: string): Promise<Dish> => {
       const res = await fetch(`/api/dishes/${id}`);
       if (!res.ok) throw new Error("Failed to fetch dish");
       const result = await res.json();
-      return result.dish; // ✅ populated dish
+      return result.dish; 
     },
 
     updateDish: async (id: string, data: Partial<Dish>): Promise<Dish> => {
@@ -103,14 +103,14 @@ export const api = {
 
       if (!res.ok) throw new Error("Failed to update dish");
       const result = await res.json();
-      return result.dish; // ✅ populated dish
+      return result.dish; 
     },
 
     // New function for updating dish with file upload
     updateDishWithFile: async (id: string, formData: FormData): Promise<Dish> => {
       const res = await fetch(`/api/dishes/${id}`, {
         method: "PUT",
-        body: formData, // Send FormData directly for file upload
+        body: formData, 
       });
 
       if (!res.ok) throw new Error("Failed to update dish");
@@ -129,6 +129,13 @@ export const api = {
       if (!res.ok) throw new Error("Failed to fetch dishes by cuisine");
       const result = await res.json();
       return result.dishes;
+    },
+
+    // USERS
+    deleteUser: async (userId: string): Promise<{ message: string }> => {
+      const res = await fetch(`/api/users/${userId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete user");
+      return res.json();
     },
 
 };

@@ -12,15 +12,27 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const cuisine = searchParams.get("cuisine");
+    const restaurantId = searchParams.get("restaurant");
+
+    let query: any = {};
+
+    if(restaurantId){
+      query.restaurant = restaurantId;
+    }
+
+    if(cuisine){
+      query.cuisineType = cuisine;
+    }
 
     let dishes;
-    if (cuisine) {
-      // Filter by cuisine
-      dishes = await Dish.find({ cuisineType: cuisine }).populate("restaurant", "_id name");
+
+     if (Object.keys(query).length > 0) {
+      // Find dishes matching query (restaurant and/or cuisine)
+      dishes = await Dish.find(query).populate("restaurant", "_id name");
     } else {
-      // Pick 6 random dishes
+      // Pick 6 random dishes if no filters
       dishes = await Dish.aggregate([
-        { $sample: { size: 6 } }, // random 6
+        { $sample: { size: 6 } },
         {
           $lookup: {
             from: "restaurants",
@@ -33,7 +45,6 @@ export async function GET(req: Request) {
         { $project: { "restaurant._id": 1, "restaurant.name": 1, name: 1, price: 1, photo: 1 } },
       ]);
     }
-
     return NextResponse.json({ success: true, dishes });
   } catch (err) {
     console.error("GET DISHES ERROR:", err);
@@ -74,7 +85,7 @@ export async function POST(req: Request) {
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
     // 🔑 Generate unique filename
-    const ext = path.extname(file.name); // get extension (.jpg, .png, etc.)
+    const ext = path.extname(file.name); // get extension 
     const uniqueName = crypto.randomUUID() + ext;
     const filePath = path.join(uploadDir, uniqueName);
 

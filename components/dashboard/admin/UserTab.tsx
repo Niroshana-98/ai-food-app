@@ -3,17 +3,9 @@
 import { useState, useMemo } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Edit, Trash2, Search } from "lucide-react"
+import { Edit, Trash2, Search, Eye } from "lucide-react"
+import type { User } from "@/lib/types"
 
-// Typescript interface for User
-export interface User {
-  _id: string
-  clerkId: string
-  email: string
-  name?: string
-  role: "admin" | "restaurant_owner" | "customer"
-  createdAt?: string
-}
 
 interface UsersTabProps {
   users: User[]
@@ -99,7 +91,7 @@ export default function UsersTab({
                 className="hover:bg-black hover:text-white"
                 onClick={() => handleEditUser(user)}
               >
-                <Edit className="h-4 w-4" />
+                <Eye className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"

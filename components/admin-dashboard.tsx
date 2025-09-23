@@ -17,8 +17,9 @@ import { DeleteRestaurantModal } from "./dashboard/admin/deleteRestaurant"
 import {EditRestaurantModal} from "./dashboard/admin/EditRestaurantModal"
 import { EditDishModal } from "./dashboard/admin/EditDishModal"
 import { Dish } from "@/lib/types"
-import { EditUserModal } from "./dashboard/admin/EditUserModal"
-import type { User } from "./dashboard/admin/UserTab"
+import { ViewUserModal } from "./dashboard/admin/EditUserModal"
+import type { User } from "@/lib/types"
+import { DeleteAccountModal } from "./dashboard/admin/DeleteAccountModal"
 
 interface AdminDashboardProps {
   onBack: () => void
@@ -44,9 +45,27 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
 
   const [editingUser, setEditingUser] = useState<User | null>(null)
 
+  const [deleteUserModalOpen, setDeleteUserModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
   const handleEditUser = (user: User) => {
     setEditingUser(user)
   }
+
+  const openDeleteUserModal = (user: User) => {
+    setUserToDelete(user);
+    setDeleteUserModalOpen(true);
+  };
+
+  const closeDeleteUserModal = () => {
+    setUserToDelete(null);
+    setDeleteUserModalOpen(false);
+  };
+
+  const handleUserDeleted = (userId: string) => {
+    setUsers((prev) => prev.filter((u) => u._id !== userId && u.clerkId !== userId));
+    closeDeleteUserModal();
+  };
 
   const handleUserEditSuccess = async () => {
     // Refresh users from API after update
@@ -235,14 +254,19 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
         onSuccess={handleDeleteSuccesss}
       />
 
-      <EditUserModal
+      <ViewUserModal
         user={editingUser}
         isOpen={!!editingUser}
         onClose={() => setEditingUser(null)}
         onSuccess={handleUserEditSuccess}
       />
 
-      
+      <DeleteAccountModal
+        userId={userToDelete?.clerkId || ""}
+        isOpen={deleteUserModalOpen}
+        onClose={closeDeleteUserModal}
+        onSuccess={handleUserDeleted}
+      />
 
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
@@ -302,8 +326,8 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
                     users={users}
                     loading={loadingUsers}
                     handleEditUser={handleEditUser}
-                    openDeleteConfirmation={(user) => {}}
-                    onUserDeleted={(userId) => {}}
+                    openDeleteConfirmation={openDeleteUserModal} 
+                    onUserDeleted={handleUserDeleted}
                   />
                 </CardContent>
               </Card>

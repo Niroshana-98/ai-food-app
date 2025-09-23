@@ -1,274 +1,263 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { api } from "@/lib/api"
-import toast from "react-hot-toast"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ChevronsUpDown, X } from "lucide-react"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { api } from "@/lib/api";
+import toast from "react-hot-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ChevronsUpDown, X } from "lucide-react";
 import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-} from "@/components/ui/command"
-import { Dish } from "@/lib/types"
-import { Switch } from "@/components/ui/switch"
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import { Switch } from "@/components/ui/switch";
 
 interface EditDishModalProps {
-    dish: any
-    isOpen: boolean
-    onClose: () => void
-    onSuccess: () => void
+  dish: any;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
 export function EditDishModal({ dish, isOpen, onSuccess, onClose }: EditDishModalProps) {
-    const [loading, setLoading] = useState(false)
-    const [restaurants, setRestaurants] = useState<any[]>([])
-    const [loadingRestaurants, setLoadingRestaurants] = useState(true)
-    const [imagePreview, setImagePreview] = useState<string | null>(null)
-    const [newImageFile, setNewImageFile] = useState<File | null>(null)
-    const [formData, setFormData] = useState({
-        name: "",
-        description: "",
-        price: "",
-        category: "",
-        cuisineType: "",
-        dietaryTags: [] as string[],
-        ingredients: [] as string[],
-        restaurant: "",
-        preparationTime: "",
-        available: true,
-        photo: "",
-    })
-    const [errors, setErrors] = useState<Record<string, string>>({})
-    const [customDietaryTag, setCustomDietaryTag] = useState("")
-    const [currentIngredient, setCurrentIngredient] = useState("")
-    const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [loadingRestaurants, setLoadingRestaurants] = useState(true);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    category: "",
+    cuisineType: "",
+    dietaryTags: [] as string[],
+    ingredients: [] as string[],
+    restaurant: "",
+    preparationTime: "",
+    available: true,
+    photo: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [customDietaryTag, setCustomDietaryTag] = useState("");
+  const [currentIngredient, setCurrentIngredient] = useState("");
+  const [open, setOpen] = useState(false);
 
-    const categoryOptions = ["Appetizer", "Main Course", "Dessert", "Beverage", "Side Dish", "Salad", "Soup"]
-    const cuisineOptions = [
-        "Indian", "Chinese", "Italian", "Mexican", "Thai", "Japanese", 
-        "Mediterranean", "American", "French", "Korean", "Vietnamese", "Greek"
-    ]
-    const dietaryTagOptions = [
-        "Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free", "Nut-Free", "Halal", 
-        "Kosher", "Spicy", "Mild", "Comfort Food", "Healthy", "Street Food", 
-        "Fine Dining", "Quick Bite", "Creamy"
-    ]
+  const categoryOptions = ["Appetizer", "Main Course", "Dessert", "Beverage", "Side Dish", "Salad", "Soup"];
+  const cuisineOptions = [
+    "Indian", "Chinese", "Italian", "Mexican", "Thai", "Japanese",
+    "Mediterranean", "American", "French", "Korean", "Vietnamese", "Greek"
+  ];
+  const dietaryTagOptions = [
+    "Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free", "Nut-Free", "Halal",
+    "Kosher", "Spicy", "Mild", "Comfort Food", "Healthy", "Street Food",
+    "Fine Dining", "Quick Bite", "Creamy"
+  ];
 
-    // Initialize form data with dish properties
-    useEffect(() => {
-        if (dish) {
-            setFormData({
-                name: dish.name || "",
-                description: dish.description || "",
-                price: dish.price?.toString() || "",
-                category: dish.category || "",
-                cuisineType: dish.cuisineType || "",
-                dietaryTags: dish.dietaryTags || [],
-                ingredients: dish.ingredients || [],
-                restaurant: dish.restaurant?._id || "",
-                preparationTime: dish.preparationTime?.toString() || "",
-                available: dish.available ?? true,
-                photo: dish.photo || "",
-            })
-            
-            if (dish.photo) {
-                setImagePreview(dish.photo)
-            }
-        }
-        fetchRestaurants()
-    }, [dish])
+  // Fetch full dish + restaurants when modal opens
+  useEffect(() => {
+    if (isOpen && dish?._id) {
+      fetchDish(dish._id);
+      fetchRestaurants();
+    }
+  }, [isOpen, dish?._id]);
 
-    // Fetch available restaurants for dropdown
-    const fetchRestaurants = async () => {
-        try {
-            setLoadingRestaurants(true)
-            const response = await api.getRestaurants()
-            const availableRestaurants = response.filter(
-                (restaurant: any) => restaurant.status === "active" || restaurant.status === "pending",
-            )
-            setRestaurants(availableRestaurants)
-        } catch (error) {
-            console.error("Error fetching restaurants:", error)
-            toast.error("Failed to load restaurants. Please try again.")
-        } finally {
-            setLoadingRestaurants(false)
-        }
+  const fetchDish = async (id: string) => {
+    try {
+      const res = await api.getDish(id);
+      if (res) {
+        const d = res;
+        setFormData({
+          name: d.name || "",
+          description: d.description || "",
+          price: d.price?.toString() || "",
+          category: d.category || "",
+          cuisineType: d.cuisineType || "",
+          dietaryTags: d.dietaryTags || [],
+          ingredients: d.ingredients || [],
+          restaurant: typeof d.restaurant === "string" ? d.restaurant : d.restaurant?._id || "",
+          preparationTime: d.preparationTime?.toString() || "",
+          available: d.available ?? true,
+          photo: d.photo || "",
+        });
+        if (d.photo) setImagePreview(d.photo);
+      }
+    } catch (error) {
+      console.error("Error fetching dish:", error);
+      toast.error("Failed to load dish data.");
+    }
+  };
+
+  const fetchRestaurants = async () => {
+    try {
+      setLoadingRestaurants(true);
+      const response = await api.getRestaurants();
+      const availableRestaurants = response.filter(
+        (restaurant: any) => restaurant.status === "active" || restaurant.status === "pending",
+      );
+      setRestaurants(availableRestaurants);
+    } catch (error) {
+      console.error("Error fetching restaurants:", error);
+      toast.error("Failed to load restaurants. Please try again.");
+    } finally {
+      setLoadingRestaurants(false);
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = "Dish name is required";
+    if (!formData.description.trim()) newErrors.description = "Description is required";
+    if (!formData.price.trim()) newErrors.price = "Price is required";
+    if (!formData.category) newErrors.category = "Category is required";
+    if (!formData.cuisineType) newErrors.cuisineType = "Cuisine type is required";
+    if (!formData.restaurant) newErrors.restaurant = "Restaurant selection is required";
+    if (!formData.preparationTime.trim()) newErrors.preparationTime = "Preparation time is required";
+
+    const price = Number.parseFloat(formData.price);
+    if (formData.price && (isNaN(price) || price <= 0)) {
+      newErrors.price = "Please enter a valid price greater than 0";
     }
 
-    // Validate form fields and return validation status
-    const validateForm = () => {
-        const newErrors: Record<string, string> = {}
-
-        if (!formData.name.trim()) newErrors.name = "Dish name is required"
-        if (!formData.description.trim()) newErrors.description = "Description is required"
-        if (!formData.price.trim()) newErrors.price = "Price is required"
-        if (!formData.category) newErrors.category = "Category is required"
-        if (!formData.cuisineType) newErrors.cuisineType = "Cuisine type is required"
-        if (!formData.restaurant) newErrors.restaurant = "Restaurant selection is required"
-        if (!formData.preparationTime.trim()) newErrors.preparationTime = "Preparation time is required"
-
-        const price = Number.parseFloat(formData.price)
-        if (formData.price && (isNaN(price) || price <= 0)) {
-            newErrors.price = "Please enter a valid price greater than 0"
-        }
-        
-        const prepTime = Number.parseInt(formData.preparationTime)
-        if (formData.preparationTime && (isNaN(prepTime) || prepTime <= 0)) {
-            newErrors.preparationTime = "Please enter a valid preparation time in minutes"
-        }
-
-        if (formData.ingredients.length === 0) {
-            newErrors.ingredients = "At least one ingredient is required"
-        }
-
-        setErrors(newErrors)
-        return Object.keys(newErrors).length === 0
+    const prepTime = Number.parseInt(formData.preparationTime);
+    if (formData.preparationTime && (isNaN(prepTime) || prepTime <= 0)) {
+      newErrors.preparationTime = "Please enter a valid preparation time in minutes";
     }
 
-    // Handle image file selection and preview
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0]
-            setNewImageFile(file)
-            
-            const reader = new FileReader()
-            reader.onload = (event) => {
-                setImagePreview(event.target?.result as string)
-            }
-            reader.readAsDataURL(file)
-        }
+    if (formData.ingredients.length === 0) {
+      newErrors.ingredients = "At least one ingredient is required";
     }
 
-    // Remove selected image and clear preview
-    const removeImage = () => {
-        setImagePreview(null)
-        setNewImageFile(null)
-        setFormData(prev => ({ ...prev, photo: "" }))
-        
-        const fileInput = document.getElementById('photo') as HTMLInputElement
-        if (fileInput) {
-            fileInput.value = ''
-        }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setNewImageFile(file);
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImagePreview(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
+  };
 
-    // Handle form submission with file upload support
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+  const removeImage = () => {
+    setImagePreview(null);
+    setNewImageFile(null);
+    setFormData(prev => ({ ...prev, photo: "" }));
+    const fileInput = document.getElementById("photo") as HTMLInputElement;
+    if (fileInput) fileInput.value = "";
+  };
 
-        if (!validateForm()) return
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
-        setLoading(true)
-        try {
-            const updatedData: any = {
-                ...formData,
-                price: Number.parseFloat(formData.price),
-                preparationTime: Number.parseInt(formData.preparationTime),
-            }
+    setLoading(true);
+    try {
+      const updatedData: any = {
+        ...formData,
+        price: Number.parseFloat(formData.price),
+        preparationTime: Number.parseInt(formData.preparationTime),
+      };
 
-            if (newImageFile) {
-                // Update with new image file
-                const formDataWithImage = new FormData()
-                formDataWithImage.append('restaurant', updatedData.restaurant)
-                formDataWithImage.append('name', updatedData.name)
-                formDataWithImage.append('price', String(updatedData.price))
-                formDataWithImage.append('description', updatedData.description)
-                formDataWithImage.append('category', updatedData.category)
-                formDataWithImage.append('cuisineType', updatedData.cuisineType)
-                formDataWithImage.append('preparationTime', String(updatedData.preparationTime))
-                formDataWithImage.append('dietaryTags', JSON.stringify(updatedData.dietaryTags))
-                formDataWithImage.append('ingredients', JSON.stringify(updatedData.ingredients))
-                formDataWithImage.append('available', String(updatedData.available))
-                formDataWithImage.append('photo', newImageFile)
-                
-                const promise = api.updateDishWithFile(dish._id, formDataWithImage)
-                toast.promise(promise, {
-                    loading: "Updating dish with new image...",
-                    success: "Dish updated successfully!",
-                    error: "Failed to update dish. Please try again.",
-                })
-                await promise
-            } else {
-                // Update without new image
-                const promise = api.updateDish(dish._id, updatedData)
-                toast.promise(promise, {
-                    loading: "Updating dish...",
-                    success: "Dish updated successfully!",
-                    error: "Failed to update dish. Please try again.",
-                })
-                await promise
-            }
-            
-            onSuccess()
-            onClose()
-        } catch (error) {
-            console.error("Error updating dish:", error)
-            toast.error("Failed to update dish. Please try again.")
-        } finally {
-            setLoading(false)
-        }
+      if (newImageFile) {
+        const formDataWithImage = new FormData();
+        Object.entries(updatedData).forEach(([key, value]) => {
+          if (key === "dietaryTags" || key === "ingredients") {
+            formDataWithImage.append(key, JSON.stringify(value));
+          } else {
+            formDataWithImage.append(key, String(value));
+          }
+        });
+        formDataWithImage.append("photo", newImageFile);
+
+        const promise = api.updateDishWithFile(dish._id, formDataWithImage);
+        toast.promise(promise, {
+          loading: "Updating dish with new image...",
+          success: "Dish updated successfully!",
+          error: "Failed to update dish. Please try again.",
+        });
+        await promise;
+      } else {
+        const promise = api.updateDish(dish._id, updatedData);
+        toast.promise(promise, {
+          loading: "Updating dish...",
+          success: "Dish updated successfully!",
+          error: "Failed to update dish. Please try again.",
+        });
+        await promise;
+      }
+
+      onSuccess();
+      onClose();
+    } catch (error) {
+      console.error("Error updating dish:", error);
+      toast.error("Failed to update dish. Please try again.");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Update form field and clear related errors
-    const handleInputChange = (field: string, value: string | boolean) => {
-        setFormData((prev) => ({ ...prev, [field]: value }))
-        if (errors[field]) {
-            setErrors((prev) => ({ ...prev, [field]: "" }))
-        }
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
+  };
 
-    // Toggle dietary tag selection
-    const toggleDietaryTag = (tag: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            dietaryTags: prev.dietaryTags.includes(tag)
-                ? prev.dietaryTags.filter((t) => t !== tag)
-                : [...prev.dietaryTags, tag],
-        }))
+  const toggleDietaryTag = (tag: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      dietaryTags: prev.dietaryTags.includes(tag)
+        ? prev.dietaryTags.filter((t) => t !== tag)
+        : [...prev.dietaryTags, tag],
+    }));
+  };
+
+  const addCustomDietaryTag = () => {
+    if (customDietaryTag.trim() && !formData.dietaryTags.includes(customDietaryTag.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        dietaryTags: [...prev.dietaryTags, customDietaryTag.trim()],
+      }));
+      setCustomDietaryTag("");
     }
+  };
 
-    // Add custom dietary tag if valid
-    const addCustomDietaryTag = () => {
-        if (customDietaryTag.trim() && !formData.dietaryTags.includes(customDietaryTag.trim())) {
-            setFormData((prev) => ({
-                ...prev,
-                dietaryTags: [...prev.dietaryTags, customDietaryTag.trim()],
-            }))
-            setCustomDietaryTag("")
-        }
+  const addIngredient = () => {
+    if (currentIngredient.trim() && !formData.ingredients.includes(currentIngredient.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        ingredients: [...prev.ingredients, currentIngredient.trim()],
+      }));
+      setCurrentIngredient("");
+      if (errors.ingredients) {
+        setErrors((prev) => ({ ...prev, ingredients: "" }));
+      }
     }
+  };
 
-    // Add ingredient if valid and unique
-    const addIngredient = () => {
-        if (currentIngredient.trim() && !formData.ingredients.includes(currentIngredient.trim())) {
-            setFormData((prev) => ({
-                ...prev,
-                ingredients: [...prev.ingredients, currentIngredient.trim()],
-            }))
-            setCurrentIngredient("")
-            if (errors.ingredients) {
-                setErrors((prev) => ({ ...prev, ingredients: "" }))
-            }
-        }
-    }
+  const removeIngredient = (ingredient: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      ingredients: prev.ingredients.filter((i) => i !== ingredient),
+    }));
+  };
 
-    // Remove ingredient from list
-    const removeIngredient = (ingredient: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            ingredients: prev.ingredients.filter((i) => i !== ingredient),
-        }))
-    }
-
-    if (!isOpen) return null
+  if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">

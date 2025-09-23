@@ -85,10 +85,10 @@ export default function DishesTab({
               <div className="flex items-center space-x-4 mt-2">
                 <span className="font-medium text-orange-600">${dish.price}</span>
                 <Badge
-                  variant={dish.available === true ? "default" : "secondary"}
+                  variant={dish.available ? "default" : "secondary"}
                   className="bg-black text-white rounded-full"
                 >
-                  {dish.available === true ? "Available" : "Not Available"}
+                  {dish.available ? "Available" : "Not Available"}
                 </Badge>
               </div>
             </div>

@@ -12,24 +12,22 @@ import {
   CreditCard,
   Tag,
   CheckCircle,
-  Home,
 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
-import { getDistanceKm, calculateDeliveryFee } from "@/lib/distance";
 import { useRouter } from "next/navigation";
 
 export default function ModernCartPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number; description: string } | null>(null);
-  const [deliveryFee, setDeliveryFee] = useState(0);
   const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
-  const [distanceKm, setDistanceKm] = useState<number | null>(null);
-  const [customerLocation, setCustomerLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [manualAddress, setManualAddress] = useState("");
-  const [user, setUser] = useState<any>(null);
-  const [loadingProfile, setLoadingProfile] = useState(true);
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  // Handle client-side initialization
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Apply promo code
   const applyPromoCode = () => {
@@ -43,6 +41,7 @@ export default function ModernCartPage() {
   // Cart calculations
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discount = appliedPromo ? subtotal * appliedPromo.discount : 0;
+  const deliveryFee = subtotal >= 50 ? 0 : 4.99; // Simple delivery fee logic
   const total = subtotal - discount + deliveryFee;
 
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -50,95 +49,24 @@ export default function ModernCartPage() {
     ? Math.ceil(cart.reduce((sum, item) => sum + (item.preparationTime || 15), 0) / cart.length)
     : 15;
 
-
+  // Only save to localStorage on client side
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-  }, [cart]);
-
-  // Fetch logged-in user’s profile
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch("/api/profile");
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch profile:", err);
-      } finally {
-        setLoadingProfile(false);
-      }
-    };
-    fetchProfile();
-  }, []);
-
-  const [savedAddresses, setSavedAddresses] = useState<string[]>(() => {
-    const saved = localStorage.getItem("addresses");
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const saveAddress = () => {
-    if (manualAddress && !savedAddresses.includes(manualAddress)) {
-      const updated = [...savedAddresses, manualAddress];
-      setSavedAddresses(updated);
-      localStorage.setItem("addresses", JSON.stringify(updated));
+    if (isClient && typeof window !== 'undefined') {
+      localStorage.setItem("cart", JSON.stringify(cart));
     }
-  };
+  }, [cart, isClient]);
 
-  useEffect(() => {
-    if (cart.length === 0 || !customerLocation) return;
-
-    const restaurant = cart[0].restaurantLocation || { lat: 6.9271, lng: 79.8612 }; // fallback Colombo
-
-    getDistanceKm(restaurant, customerLocation).then((distance) => {
-      setDistanceKm(distance);
-      const fee = calculateDeliveryFee(distance);
-      setDeliveryFee(fee);
-    });
-  }, [cart, customerLocation]);
-
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      console.warn("Geolocation is not supported by your browser");
-      return;
-    }
-
-  navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setCustomerLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-        // fallback location if user denies permission
-        setCustomerLocation({ lat: 6.9271, lng: 79.8612 }); // Colombo
-      }
+  // Show loading state during hydration
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-rose-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
     );
-  }, []);
-
-  const handleManualLocation = async () => {
-    if (!manualAddress) return;
-
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(manualAddress)}`
-      );
-      const data = await response.json();
-      if (data && data.length > 0) {
-        setCustomerLocation({
-          lat: parseFloat(data[0].lat),
-          lng: parseFloat(data[0].lon),
-        });
-      } else {
-        alert("Address not found, please enter a valid location.");
-      }
-    } catch (error) {
-      console.error("Error fetching location:", error);
-    }
-  };
+  }
 
   // Empty cart state
   if (cart.length === 0) {
@@ -146,7 +74,10 @@ export default function ModernCartPage() {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-rose-50">
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="flex items-center gap-4 mb-8">
-            <button className="p-2 hover:bg-white/80 rounded-full transition-colors">
+            <button 
+              onClick={() => router.back()}
+              className="p-2 hover:bg-white/80 rounded-full transition-colors"
+            >
               <ArrowLeft className="h-6 w-6 text-gray-600" />
             </button>
             <h1 className="text-3xl font-bold text-gray-900">Your Cart</h1>
@@ -163,7 +94,10 @@ export default function ModernCartPage() {
               Looks like you haven't added any delicious items to your cart yet.
               Start exploring our amazing restaurants and dishes!
             </p>
-            <button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-full font-semibold transition-all duration-200 transform hover:scale-105 hover:shadow-lg">
+            <button 
+              onClick={() => router.push("/")}
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-full font-semibold transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
+            >
               Browse Restaurants
             </button>
           </div>
@@ -179,7 +113,10 @@ export default function ModernCartPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <button className="p-2 hover:bg-white/80 rounded-full transition-colors">
+            <button 
+              onClick={() => router.back()}
+              className="p-2 hover:bg-white/80 rounded-full transition-colors"
+            >
               <ArrowLeft className="h-6 w-6 text-gray-600" />
             </button>
             <div>
@@ -295,12 +232,9 @@ export default function ModernCartPage() {
                 </div>
               </div>
             ))}
-            
           </div>
 
-          
-
-          {/* Order Summary */}
+          {/* Order Summary Sidebar */}
           <div className="space-y-6">
             {/* Promo Code */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -330,62 +264,6 @@ export default function ModernCartPage() {
                   <span>{appliedPromo.description}</span>
                 </div>
               )}
-            </div>
-
-            <div className="bg-white shadow-md rounded-lg p-4">
-        <h2 className="text-xl font-bold mb-3">Contact Details</h2>
-        {loadingProfile ? (
-          <p className="text-gray-500">Loading...</p>
-        ) : user ? (
-          <div className="space-y-1 text-sm text-gray-700">
-            <p><span className="font-medium">Name:</span> {user.name}</p>
-            <p><span className="font-medium">Phone:</span> {user.phone || "Not provided"}</p>
-            <p><span className="font-medium">Email:</span> {user.email || "Not provided"}</p>
-            <p><span className="font-medium">Address:</span> {user.address || "Not provided"}</p>
-          </div>
-        ) : (
-          <p className="text-red-500">Could not load profile details.</p>
-        )}
-      </div>
-
-            {savedAddresses.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                  <Home className="h-5 w-5 text-orange-600" />
-                  Saved Addresses
-                </h3>
-                <ul className="space-y-2">
-                  {savedAddresses.map((addr, idx) => (
-                    <li key={idx}>
-                      <button
-                        onClick={() => setManualAddress(addr)}
-                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-orange-50 transition"
-                      >
-                        {addr}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Enter your delivery address:
-              </label>
-              <input
-                type="text"
-                value={manualAddress}
-                onChange={(e) => setManualAddress(e.target.value)}
-                placeholder="City, Street, Zip"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
-              <button
-                onClick={handleManualLocation}
-                className="mt-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
-              >
-                Set Location
-              </button>
             </div>
 
             {/* Order Summary */}
@@ -422,7 +300,7 @@ export default function ModernCartPage() {
                   </span>
                 </div>
 
-                {subtotal <= 50 && (
+                {subtotal < 50 && (
                   <div className="bg-blue-50 p-3 rounded-lg">
                     <p className="text-blue-700 text-xs">
                       Add ${(50 - subtotal).toFixed(2)} more for free delivery!
@@ -445,16 +323,12 @@ export default function ModernCartPage() {
                 <div className="flex items-center gap-2 text-gray-600 mb-1">
                   <Clock className="h-4 w-4" />
                   <span>
-                    Estimated delivery: {avgPreparationTime + 15}-
-                    {avgPreparationTime + 25} min
+                    Estimated prep: {avgPreparationTime} min
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
                   <MapPin className="h-4 w-4" />
-                  <span>
-                    Delivering to your location
-                    {distanceKm !== null && ` • ${distanceKm.toFixed(1)} km away`}
-                  </span>
+                  <span>Address will be confirmed at checkout</span>
                 </div>
               </div>
 

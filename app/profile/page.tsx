@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Country, State, City } from "country-state-city"
 import toast from "react-hot-toast"
 import type { SingleValue, ActionMeta } from "react-select"
+import { useRouter } from "next/navigation"
 
 const Select = dynamic(() => import("react-select"), { ssr: false })
 
@@ -44,6 +45,7 @@ function formatDateForInput(date?: string | Date): string {
 }
 
 export default function UserProfileForm() {
+  const router = useRouter()
   const [user, setUser] = useState<UserProfile>({
     name: "",
     email: "",
@@ -185,28 +187,38 @@ export default function UserProfileForm() {
     if (!validateForm()) return
 
     try {
-      setLoading(true)
-      const res = await fetch("/api/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(user),
-      })
-      
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: "Unknown error" }))
-        throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`)
-      }
+      await toast.promise(
+        (async () => {
+          setLoading(true)
+          const res = await fetch("/api/profile", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(user),
+          })
 
-      const data = await res.json()
-      toast.success("Profile updated successfully 🎉")
-      setUser(prevUser => ({
-        ...prevUser,
-        ...data,
-        dateOfBirth: formatDateForInput(data.dateOfBirth),
-      }))
-    } catch (error: any) {
+          if (!res.ok) {
+            const errorData = await res.json().catch(() => ({ error: "Unknown error" }))
+            throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`)
+          }
+
+          const data = await res.json()
+          setUser(prevUser => ({
+            ...prevUser,
+            ...data,
+            dateOfBirth: formatDateForInput(data.dateOfBirth),
+          }))
+
+          router.push("/")  
+          return data
+        })(),
+        {
+          loading: "Saving profile...",
+          success: "Profile updated successfully 🎉",
+          error: (err) => err.message || "Something went wrong",
+        }
+      )
+    } catch (error) {
       console.error("Save error:", error)
-      toast.error(error.message || "Something went wrong")
     } finally {
       setLoading(false)
     }

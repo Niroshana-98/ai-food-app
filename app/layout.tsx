@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import AuthHandler from "@/components/AuthHandler";
+import { CartProvider } from "@/contexts/CartContext"; // 👈 import your provider
 
 export const metadata: Metadata = {
   title: "AI Food Recommendation App",
@@ -13,17 +14,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider
-      // default landing; RoleRedirect will take over post-auth
-      afterSignInUrl="/"
-      afterSignUpUrl="/"
-    >
+    <ClerkProvider afterSignInUrl="/" afterSignUpUrl="/">
       <html lang="en" suppressHydrationWarning>
         <body suppressHydrationWarning>
           <Toaster position="top-center" />
-          <Navbar />
-          <AuthHandler />
-          <main>{children}</main>
+          <CartProvider> {/* 👈 wrap your app */}
+            <Navbar />
+            <AuthHandler />
+            <main>{children}</main>
+          </CartProvider>
         </body>
       </html>
     </ClerkProvider>

@@ -68,9 +68,12 @@ export default function DishesTab({
             {/* Dish Photo */}
             {dish.photo && (
               <img
-                src={dish.photo}
+                src={dish.photo || "/default-dish.png"}
                 alt={dish.name}
                 className="w-24 h-24 object-cover rounded-md mr-4 border"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/default-dish.png";
+                }} 
               />
             )}
 

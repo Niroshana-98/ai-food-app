@@ -1,8 +1,12 @@
 "use client";
+
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 export default function DashboardEntry() {
   const { user } = useUser();
@@ -19,9 +23,9 @@ export default function DashboardEntry() {
           clearInterval(interval);
           return 100;
         }
-        return old + 20;
+        return old + 10;
       });
-    }, 80);
+    }, 120);
 
     // Redirect after animation
     const timeout = setTimeout(() => {
@@ -34,7 +38,7 @@ export default function DashboardEntry() {
       } else {
         router.replace("/dashboard/customer");
       }
-    }, 500);
+    }, 1800);
 
     return () => {
       clearInterval(interval);
@@ -44,25 +48,31 @@ export default function DashboardEntry() {
 
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-br from-orange-50 to-red-50">
-      <div className="w-80 max-w-md text-center">
-        <motion.p
-          className="mb-6 text-lg font-semibold text-gray-800"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          Loading your dashboard...
-        </motion.p>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+      >
+        <Card className="w-96 shadow-xl rounded-2xl border border-orange-200">
+          <CardContent className="flex flex-col items-center justify-center p-8 space-y-6">
+            {/* Loading spinner */}
+            <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
 
-        <div className="w-full h-3 bg-white/60 rounded-full overflow-hidden shadow-inner">
-          <motion.div
-            className="h-3 bg-orange-500 rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ ease: "easeInOut", duration: 0.2 }}
-          />
-        </div>
-      </div>
+            {/* Loading text */}
+            <motion.p
+              className="text-lg font-semibold text-gray-800"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              Preparing your dashboard....
+            </motion.p>
+
+            {/* Progress bar */}
+            <Progress value={progress} className="w-full h-3" />
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }

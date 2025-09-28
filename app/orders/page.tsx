@@ -435,7 +435,6 @@ export default function ModernOrdersPage() {
               </div>
             ))}
 
-            {/* Load More Button (if you implement pagination) */}
             {filteredOrders.length > 0 && (
               <div className="text-center pt-8">
                 <p className="text-gray-600">Showing {filteredOrders.length} of {orders.length} orders</p>

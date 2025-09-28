@@ -4,7 +4,7 @@ import Restaurant, { IRestaurant } from '../models/Restaurant';
 
 // Initialize OpenAI
 const openai = new OpenAI({
-  apiKey: "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",
+  apiKey: "",
 });
 
 // Function to generate embeddings using OpenAI
@@ -470,7 +470,7 @@ function generateVariedDescription(baseDescription: string, restaurantName: stri
 async function seedRestaurants() {
   try {
     // Connect to MongoDB
-    const MONGODB_URI = "mongodb+srv://niroshanthirimadura:8NgZqOIA1j0NWOUX@cluster0.2dgfuqo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+    const MONGODB_URI = "";
     if (!MONGODB_URI) {
       throw new Error('MONGODB_URI environment variable is required');
     }

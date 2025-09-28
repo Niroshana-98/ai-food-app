@@ -489,7 +489,7 @@ function generatePhotoUrl(dishName: string): string {
 async function seedDishes() {
   try {
     // Connect to MongoDB
-    const MONGODB_URI = "";
+    const MONGODB_URI = " ";
     if (!MONGODB_URI) {
       throw new Error('MONGODB_URI environment variable is required');
     }

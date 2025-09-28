@@ -16,35 +16,17 @@ export async function GET(req: Request) {
 
     let query: any = {};
 
-    if(restaurantId){
+    if (restaurantId) {
       query.restaurant = restaurantId;
     }
 
-    if(cuisine){
+    if (cuisine) {
       query.cuisineType = cuisine;
     }
 
-    let dishes;
+    // ✅ Always return all dishes (with optional filters)
+    const dishes = await Dish.find(query).populate("restaurant", "_id name");
 
-     if (Object.keys(query).length > 0) {
-      // Find dishes matching query (restaurant and/or cuisine)
-      dishes = await Dish.find(query).populate("restaurant", "_id name");
-    } else {
-      // Pick 6 random dishes if no filters
-      dishes = await Dish.aggregate([
-        { $sample: { size: 6 } },
-        {
-          $lookup: {
-            from: "restaurants",
-            localField: "restaurant",
-            foreignField: "_id",
-            as: "restaurant",
-          },
-        },
-        { $unwind: "$restaurant" },
-        { $project: { "restaurant._id": 1, "restaurant.name": 1, name: 1, price: 1, photo: 1 } },
-      ]);
-    }
     return NextResponse.json({ success: true, dishes });
   } catch (err) {
     console.error("GET DISHES ERROR:", err);
@@ -54,8 +36,6 @@ export async function GET(req: Request) {
     );
   }
 }
-
-
 
 export async function POST(req: Request) {
   await connectDB();

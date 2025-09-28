@@ -69,9 +69,12 @@ export default function RestaurantsTab({
           >
             {restaurant.photo && (
               <img
-                src={restaurant.photo}
+                src={restaurant.photo || "/default-restaurant.png"}
                 alt={restaurant.name}
                 className="w-24 h-24 object-cover rounded-md mr-4 border"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/default-restaurant.png";
+                }} 
               />
             )}
             <div className="flex-1">

@@ -13,6 +13,7 @@ export interface IDish extends Document {
   available: boolean;
   photo?: string;
   createdAt: Date;
+  embedding?: number[];
 }
 
 const DishSchema = new Schema<IDish>(
@@ -28,6 +29,7 @@ const DishSchema = new Schema<IDish>(
     ingredients: { type: [String], required: true },
     available: { type: Boolean, default: true },
     photo: { type: String, required: true },
+    embedding: { type: [Number], index: "vector" },
     
   },
   { timestamps: true }

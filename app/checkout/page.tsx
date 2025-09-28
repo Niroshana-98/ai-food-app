@@ -542,9 +542,12 @@ const CheckoutForm = () => {
                 {cart.map((item) => (
                   <div key={item.id} className="flex items-center gap-3">
                     <img
-                      src={item.image || "/api/placeholder/48/48"}
+                      src={item.image || "/api/placeholder/48/48" || "default-dish.png"}
                       alt={item.name}
                       className="w-12 h-12 rounded-lg object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = "/default-dish.png";
+                      }} 
                     />
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-gray-900 truncate">{item.name}</h4>

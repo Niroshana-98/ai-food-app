@@ -512,23 +512,7 @@ export default function OrderSuccessContent() {
             <div className="bg-white rounded-3xl shadow-xl p-6 border border-green-100">
               <h3 className="text-xl font-bold mb-6">Quick Actions</h3>
               <div className="space-y-4">
-                <button 
-                  onClick={() => router.push(`/track-order?orderId=${orderDetails.orderId}`)}
-                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2"
-                >
-                  <Package className="h-5 w-5" />
-                  Track Order
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-
-                <button 
-                  onClick={() => window.print()}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-md flex items-center justify-center gap-2"
-                >
-                  <Download className="h-5 w-5" />
-                  Download Receipt
-                </button>
-
+                
                 <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-md flex items-center justify-center gap-2">
                   <MessageCircle className="h-5 w-5" />
                   Contact Support
@@ -541,24 +525,6 @@ export default function OrderSuccessContent() {
                   <Home className="h-5 w-5" />
                   Order Again
                 </button>
-              </div>
-            </div>
-
-            {/* Rating Request */}
-            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-3xl p-6 border border-yellow-200">
-              <h4 className="font-bold text-yellow-800 mb-3 flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-500" />
-                Rate Your Experience
-              </h4>
-              <p className="text-yellow-700 text-sm mb-4">
-                How was your order? Your feedback helps us improve!
-              </p>
-              <div className="flex gap-1 justify-center">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button key={star} className="text-yellow-400 hover:text-yellow-500 transition-colors">
-                    <Star className="h-6 w-6 fill-current" />
-                  </button>
-                ))}
               </div>
             </div>
           </div>

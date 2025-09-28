@@ -12,6 +12,7 @@ export interface IRestaurant extends Document {
   status: "pending" | "active" | "inactive";
   photo?: string; 
   createdAt: Date;
+  embedding?: number[];
 }
 
 const RestaurantSchema = new Schema<IRestaurant>(
@@ -30,6 +31,7 @@ const RestaurantSchema = new Schema<IRestaurant>(
       default: "active",
     },
     photo: { type: String, required: true },
+    embedding: { type: [Number], index: "vector" },
   },
   { timestamps: true }
 );

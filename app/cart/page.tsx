@@ -149,9 +149,12 @@ export default function ModernCartPage() {
                     {/* Item Image */}
                     <div className="relative flex-shrink-0">
                       <img
-                        src={item.image || "/api/placeholder/120/120"}
+                        src={item.image || "/api/placeholder/120/120" || "difault-dish.png"}
                         alt={item.name}
                         className="w-20 h-20 rounded-xl object-cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = "/default-dish.png";
+                        }} 
                       />
                       <div className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                         {item.quantity}

@@ -14,6 +14,7 @@ export function Hero({ onGetRecommendations }: HeroProps) {
     <div className="text-center mb-12">
       <h1 className="text-5xl font-bold text-gray-900 mb-6">{siteConfig.heroTitle}</h1>
       <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">{siteConfig.tagline}</p>
+      {/*
       <div className="max-w-md mx-auto mb-8">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -24,6 +25,7 @@ export function Hero({ onGetRecommendations }: HeroProps) {
         onClick={onGetRecommendations}>
         Get AI Recommendations
       </Button>
+      */}
     </div>
   );
 }
